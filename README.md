@@ -1,19 +1,13 @@
-# Sanctum Core Module: MCP Server
+# SMCP
 
-[![License: CC BY-SA 4.0](https://img.shields.io/badge/License-CC%20BY--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-sa/4.0/)
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![MCP Protocol](https://img.shields.io/badge/MCP-Protocol%20Compliant-green.svg)](https://modelcontextprotocol.io/)
+[![License: CC BY-SA 4.0](https://img.shields.io/badge/License-CC%20BY--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-sa/4.0/)]
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)]
+[![MCP Protocol](https://img.shields.io/badge/MCP-Protocol%20Compliant-green.svg)](https://modelcontextprotocol.io/)]
+[![Sanctum Core Module](https://img.shields.io/badge/Sanctum-Core%20Module-blue.svg)](https://github.com/sanctumos)
 
-> **🚨 IMPORTANT NOTICE FOR NEW DEVELOPERS** 🚨
-> 
-> **This repository has been graduated to Sanctum Core Module status!**
-> 
-> **For new development, please use the canonical source:**
-> **→ [github.com/sanctumos/smcp](https://github.com/sanctumos/smcp) ←**
-> 
-> This repository remains available for users who prefer to continue using this version, but new features and updates will be developed in the official Sanctum repository.
+**Sanctum Core Module: Model Context Protocol Server**
 
-A powerful, plugin-based Model Context Protocol (MCP) server for the Sanctum AI framework. This server provides seamless integration between AI clients and external tools through a robust plugin architecture. As a Sanctum Core Module, it represents the official, production-ready implementation maintained by the Sanctum team.
+SMCP is a powerful, plugin-based Model Context Protocol (MCP) server for the Sanctum Letta AI framework. This server provides seamless integration between AI clients and external tools through a robust plugin architecture. As a Sanctum Core Module, it represents the official, production-ready implementation maintained by the Sanctum team.
 
 ## 🚀 Features
 
@@ -388,6 +382,4 @@ For support, questions, or contributions:
 
 ---
 
-**Part of the Sanctum Suite** - A comprehensive AI framework for modern applications.
-
-> **Note**: This repository has been graduated to **Sanctum Core Module** status. The canonical source is now maintained at [github.com/sanctumos/smcp](https://github.com/sanctumos/smcp). This repository remains available for users who prefer to continue using this version. 
+**Part of the Sanctum Suite** - A comprehensive AI framework for modern applications. 
