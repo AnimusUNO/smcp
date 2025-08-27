@@ -19,6 +19,15 @@ SMCP is a powerful, plugin-based Model Context Protocol (MCP) server for the San
 - **Health Monitoring**: Built-in health checks and status reporting
 - **Production Ready**: Comprehensive error handling and logging
 
+## 📖 **Ready to Get Started?**
+
+**New to SMCP?** Start with our comprehensive documentation:
+
+- **[🚀 Getting Started Guide](docs/getting-started.md)** - **Complete setup in 5 minutes**
+- **[🔌 Plugin Development](docs/plugin-development-guide.md)** - **Build your first plugin**
+- **[📋 Examples](docs/examples.md)** - **Copy-paste working code**
+- **[🚨 Troubleshooting](docs/troubleshooting.md)** - **Solve any problem quickly**
+
 ## 📦 Installation
 
 ### Prerequisites
@@ -26,13 +35,15 @@ SMCP is a powerful, plugin-based Model Context Protocol (MCP) server for the San
 - Python 3.8 or higher
 - pip package manager
 
-### Quick Start
+### Deployment Options
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/sanctumos/smcp.git
-   cd sanctum-letta-mcp
-   ```
+**Option 1: Master Sanctum Installer (Recommended)**
+The master Sanctum installer will automatically deploy SMCP to the correct location within your Sanctum environment with all necessary configurations.
+
+**Option 2: Standalone Repository**
+SMCP can also function as a standalone repository for development, testing, or custom deployments.
+
+### Quick Start (Standalone)
 
 2. **Create virtual environment**
    ```bash
@@ -78,6 +89,16 @@ python smcp/mcp_server.py --host 0.0.0.0 --port 8000
 
 ## 🔧 Configuration
 
+### Master Sanctum Installer Integration
+
+When deployed via the master Sanctum installer, SMCP is automatically:
+- Installed to the correct location within your Sanctum environment
+- Configured with appropriate environment variables
+- Integrated with the Sanctum plugin management system
+- Set up with proper networking and security configurations
+
+> **Note**: The following configuration options apply to standalone deployments. When using the master installer, these are handled automatically.
+
 ### Environment Variables
 
 | Variable | Default | Description |
@@ -105,6 +126,10 @@ python smcp/mcp_server.py
 ```
 
 ## 🔌 Plugin Development
+
+> **Note**: When deployed via the master Sanctum installer, plugins are automatically discovered and managed. The following applies to standalone deployments and custom plugin development.
+
+For comprehensive plugin development documentation, see [docs/dev/plugin-development-guide.md](docs/dev/plugin-development-guide.md).
 
 ### Plugin Structure
 
@@ -360,6 +385,26 @@ mypy smcp/
 # Run tests with coverage
 python -m pytest tests/ --cov=smcp --cov-report=html
 ```
+
+## 📚 **Comprehensive Documentation**
+
+### 🚀 **Getting Started**
+- **[📖 Getting Started Guide](docs/getting-started.md)** - **NEW USERS START HERE!** Complete setup and first steps
+- **[🔌 Plugin Development Guide](docs/plugin-development-guide.md)** - Create and deploy custom plugins
+- **[📋 Examples Guide](docs/examples.md)** - **Practical examples** and code samples for all use cases
+
+### 🔧 **Configuration & Deployment**
+- **[🚀 Deployment Guide](docs/deployment-guide.md)** - **Production deployment** with systemd, Docker, and reverse proxy
+- **[🔧 Configuration Guide](docs/api-reference.md)** - Complete API documentation and configuration options
+- **[🏗️ MCP Reference Architecture](docs/MCP-Reference-Architecture.md)** - High-level architecture overview
+
+### 🔗 **Integration & Troubleshooting**
+- **[🔗 Letta MCP Connection Guide](docs/Letta-MCP-Connection-Guide.md)** - Connect Letta clients to SMCP
+- **[🚨 Troubleshooting Guide](docs/troubleshooting.md)** - **Common issues and solutions** for all problems
+- **[📊 Monitoring & Health Checks](docs/deployment-guide.md#monitoring-and-logging)** - Production monitoring setup
+
+### 👨‍💻 **Developer Resources**
+- **[📋 Project Plan](docs/dev/project-plan.md)** - Internal project planning and decisions
 
 ## 📄 License
 
