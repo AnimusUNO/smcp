@@ -588,4 +588,6 @@ def execute_rollback(app_name: str, version: str) -> Dict[str, Any]:
 
 ---
 
-**Need Help?** Create an issue on the [GitHub repository](https://github.com/actuallyrizzn/sanctum-letta-mcp/issues) or contact the maintainer. 
+**Need Help?** Create an issue on the [GitHub repository](https://github.com/sanctumos/smcp/issues) or contact the maintainer.
+
+> **Note**: This repository has been graduated to **Sanctum Core Module** status. The canonical source is now maintained at [github.com/sanctumos/smcp](https://github.com/sanctumos/smcp). 
