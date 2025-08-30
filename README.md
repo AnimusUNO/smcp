@@ -1,6 +1,6 @@
 # SMCP
 
-[![License: CC BY-SA 4.0](https://img.shields.io/badge/License-CC%20BY--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-sa/4.0/)]
+[![License: AGPLv3](https://img.shields.io/badge/License-AGPLv3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0) [![Docs License: CC BY-SA 4.0](https://img.shields.io/badge/Docs%20License-CC%20BY--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-sa/4.0/)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)]
 [![MCP Protocol](https://img.shields.io/badge/MCP-Protocol%20Compliant-green.svg)](https://modelcontextprotocol.io/)]
 [![Sanctum Core Module](https://img.shields.io/badge/Sanctum-Core%20Module-blue.svg)](https://github.com/sanctumos)
@@ -408,7 +408,12 @@ python -m pytest tests/ --cov=smcp --cov-report=html
 
 ## 📄 License
 
-This project is licensed under the Creative Commons Attribution-ShareAlike 4.0 International License - see the [LICENSE](LICENSE) file for details.
+This project uses dual licensing:
+
+- **Code**: Licensed under the GNU Affero General Public License v3.0 (AGPLv3) - see the [LICENSE](LICENSE) file for details.
+- **Documentation & Data**: Licensed under the Creative Commons Attribution-ShareAlike 4.0 International License (CC-BY-SA 4.0) - see the [LICENSE-DOCS](LICENSE-DOCS) file for details.
+
+**Important**: AGPLv3 is a copyleft license that requires any derivative works to also be open source. If you modify and distribute this software, you must make your source code available under the same license.
 
 ## 🙏 Acknowledgments
 

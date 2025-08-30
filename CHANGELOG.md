@@ -30,7 +30,7 @@ This release represents a complete rewrite and major upgrade of the Sanctum Lett
 - **Plugin System**: Redesigned plugin architecture with automatic discovery
 - **Testing Infrastructure**: Rebuilt test suite from scratch with proper SSE understanding
 - **Documentation**: Complete rewrite with comprehensive guides and examples
-- **License**: Updated to CC-BY-SA 4.0 with proper attribution
+- **License**: Updated to dual licensing: AGPLv3 for code, CC-BY-SA 4.0 for documentation
 - **Project Structure**: Reorganized for better maintainability and user experience
 
 ### 🐛 Fixed
