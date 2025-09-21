@@ -1,15 +1,15 @@
 # Getting Started with SMCP
 
-Welcome to SMCP (Sanctum Model Context Protocol Server)! This guide will help you get up and running quickly, whether you're using the master Sanctum installer or running SMCP standalone.
+Welcome to SMCP (Animus Model Context Protocol Server)! This guide will help you get up and running quickly, whether you're using the master Animus installer or running SMCP standalone.
 
 ## 🚀 Quick Start Options
 
-### Option 1: Master Sanctum Installer (Recommended)
-The easiest way to get started is through the master Sanctum installer, which handles all configuration automatically:
+### Option 1: Master Animus Installer (Recommended)
+The easiest way to get started is through the master Animus installer, which handles all configuration automatically:
 
 ```bash
-# Install via master Sanctum installer
-# (This will be documented in the main Sanctum documentation)
+# Install via master Animus installer
+# (This will be documented in the main Animus documentation)
 ```
 
 ### Option 2: Standalone Installation
@@ -17,7 +17,7 @@ For development, testing, or custom deployments, you can run SMCP standalone:
 
 ```bash
 # Clone the repository
-git clone https://github.com/sanctumos/smcp.git
+git clone https://github.com/animusos/smcp.git
 cd smcp
 
 # Create virtual environment
@@ -178,8 +178,8 @@ Now that you're up and running:
 ## 🆘 Need Help?
 
 - **Documentation**: Check the [main documentation index](../README.md#-documentation)
-- **Issues**: Report problems on [GitHub Issues](https://github.com/sanctumos/smcp/issues)
-- **Community**: Join the Sanctum community discussions
+- **Website**: https://animus.uno
+- **X (Twitter)**: https://x.com/animusuno
 
 ---
 

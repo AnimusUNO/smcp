@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 🎉 Major Release - Complete Overhaul
 
-This release represents a complete rewrite and major upgrade of the Sanctum Letta MCP Server, addressing weeks of development challenges and providing a robust, production-ready solution.
+This release represents a complete rewrite and major upgrade of the Animus Letta MCP Server, addressing weeks of development challenges and providing a robust, production-ready solution.
 
 ### ✨ Added
 

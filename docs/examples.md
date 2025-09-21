@@ -726,4 +726,4 @@ For additional examples and use cases:
 
 ---
 
-**Have a specific use case?** Check our [GitHub Issues](https://github.com/sanctumos/smcp/issues) or create a new one with your requirements!
+**Have a specific use case?** Visit [animus.uno](https://animus.uno) or follow [@animusuno](https://x.com/animusuno) for support!

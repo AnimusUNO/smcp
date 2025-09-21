@@ -1,10 +1,10 @@
 # API Reference
 
-Complete API reference for the Sanctum Letta MCP Server.
+Complete API reference for the Animus Letta MCP Server.
 
 ## Overview
 
-The Sanctum Letta MCP Server implements the Model Context Protocol (MCP) specification using Server-Sent Events (SSE) for real-time communication and HTTP POST for request/response handling.
+The Animus Letta MCP Server implements the Model Context Protocol (MCP) specification using Server-Sent Events (SSE) for real-time communication and HTTP POST for request/response handling.
 
 ## Endpoints
 
@@ -136,7 +136,7 @@ All messages follow the JSON-RPC 2.0 specification:
       }
     },
     "serverInfo": {
-      "name": "sanctum-letta-mcp",
+      "name": "animus-letta-mcp",
       "version": "3.0.0"
     }
   }
@@ -333,16 +333,16 @@ You can centralize plugins in a designated location and use symlinks for discove
 
 ```
 # Central plugin repository
-/opt/sanctum/plugins/
+/opt/animus/plugins/
 ├── botfather/
 ├── devops/
 └── custom-plugin/
 
 # MCP server plugin directory with symlinks
 smcp/plugins/
-├── botfather -> /opt/sanctum/plugins/botfather
-├── devops -> /opt/sanctum/plugins/devops
-└── custom-plugin -> /opt/sanctum/plugins/custom-plugin
+├── botfather -> /opt/animus/plugins/botfather
+├── devops -> /opt/animus/plugins/devops
+└── custom-plugin -> /opt/animus/plugins/custom-plugin
 ```
 
 #### Benefits of Symlink Architecture
@@ -357,7 +357,7 @@ smcp/plugins/
 
 ```bash
 # Create symlink to centralized plugin
-ln -s /opt/sanctum/plugins/botfather smcp/plugins/botfather
+ln -s /opt/animus/plugins/botfather smcp/plugins/botfather
 
 # Create symlink to user's custom plugin
 ln -s /home/user/custom-plugins/my-plugin smcp/plugins/my-plugin
@@ -372,11 +372,11 @@ You can override the plugin directory using the `MCP_PLUGINS_DIR` environment va
 
 ```bash
 # Use custom plugin directory
-export MCP_PLUGINS_DIR=/opt/sanctum/plugins
+export MCP_PLUGINS_DIR=/opt/animus/plugins
 python smcp/mcp_server.py
 
 # Or specify directly
-MCP_PLUGINS_DIR=/opt/sanctum/plugins python smcp/mcp_server.py
+MCP_PLUGINS_DIR=/opt/animus/plugins python smcp/mcp_server.py
 ```
 
 ### Plugin Execution
@@ -448,7 +448,7 @@ The server does not currently implement rate limiting. For production use, consi
 Logs are written in structured format:
 
 ```
-2025-07-11 15:21:07,215 - __main__ - INFO - Starting Sanctum Letta MCP Server...
+2025-07-11 15:21:07,215 - __main__ - INFO - Starting Animus Letta MCP Server...
 2025-07-11 15:21:07,354 - __main__ - INFO - Registered tool: botfather.click-button
 ```
 
@@ -544,8 +544,8 @@ The server can be configured through environment variables or by modifying the s
 ```python
 # Server configuration
 server = FastMCP(
-    name="sanctum-letta-mcp",
-    instructions="A plugin-based MCP server for Sanctum Letta operations",
+    name="animus-letta-mcp",
+    instructions="A plugin-based MCP server for Animus Letta operations",
     sse_path="/sse",
     message_path="/messages/",
     host=os.getenv("MCP_HOST", "0.0.0.0"),

@@ -318,9 +318,9 @@ When reporting issues, include:
 - **System resources** (CPU, memory, disk)
 
 ### Support Channels
-- **GitHub Issues**: [Report bugs here](https://github.com/sanctumos/smcp/issues)
+- **Website**: [animus.uno](https://animus.uno)
 - **Documentation**: Check the [main documentation](../README.md#-documentation)
-- **Community**: Join Sanctum community discussions
+- **X (Twitter)**: [@animusuno](https://x.com/animusuno)
 
 ---
 

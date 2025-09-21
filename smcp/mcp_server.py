@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Sanctum Letta MCP Server
+Animus Letta MCP Server
 
 A Server-Sent Events (SSE) server for orchestrating plugin execution using the official MCP library.
 Compliant with Model Context Protocol (MCP) specification.
@@ -266,8 +266,8 @@ def register_plugin_tools(server_instance: FastMCP) -> None:
 def create_server(host: str, port: int) -> FastMCP:
     """Create and configure the FastMCP server instance."""
     return FastMCP(
-        name="sanctum-letta-mcp",
-        instructions="A plugin-based MCP server for Sanctum Letta operations",
+        name="animus-letta-mcp",
+        instructions="A plugin-based MCP server for Animus Letta operations",
         sse_path="/sse",
         message_path="/messages/",
         host=host,
@@ -312,7 +312,7 @@ def create_health_tool(server_instance: FastMCP):
 def parse_arguments():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(
-        description="Sanctum Letta MCP Server - A plugin-based MCP server for AI operations",
+        description="Animus Letta MCP Server - A plugin-based MCP server for AI operations",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -361,7 +361,7 @@ def main():
         host = "0.0.0.0"
         logger.info("🔒 Security: Server bound to all interfaces (localhost + Docker containers). Use --host 127.0.0.1 for localhost-only.")
     
-    logger.info(f"Starting Sanctum Letta MCP Server on {host}:{args.port}...")
+    logger.info(f"Starting Animus Letta MCP Server on {host}:{args.port}...")
     
     # Create server instance
     global server

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Test runner script for Sanctum Letta MCP Server.
+Test runner script for Animus Letta MCP Server.
 
 This script provides easy access to run different types of tests:
 - Unit tests

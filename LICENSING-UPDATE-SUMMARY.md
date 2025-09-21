@@ -1,7 +1,7 @@
 # Licensing Update Summary
 
 ## Overview
-This document summarizes the comprehensive licensing structure update for the Sanctum Letta MCP project, transitioning from a single CC-BY-SA 4.0 license to a dual-licensing approach.
+This document summarizes the comprehensive licensing structure update for the Animus Letta MCP project, transitioning from a single CC-BY-SA 4.0 license to a dual-licensing approach.
 
 ## New Licensing Structure
 
@@ -111,7 +111,7 @@ This document summarizes the comprehensive licensing structure update for the Sa
 
 For questions about licensing or compliance:
 - **Author**: Mark Rizzn Hopkins
-- **Repository**: https://github.com/sanctumos/smcp
+- **Website**: https://animus.uno
 - **License Files**: See `LICENSE` and `LICENSE-DOCS` in the project root
 
 ---

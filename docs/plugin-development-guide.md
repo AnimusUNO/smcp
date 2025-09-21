@@ -1,6 +1,6 @@
 # Plugin Development Guide
 
-A comprehensive guide for developing plugins for the Sanctum Letta MCP Server.
+A comprehensive guide for developing plugins for the Animus Letta MCP Server.
 
 ## Overview
 
@@ -57,7 +57,7 @@ from typing import Dict, Any
 def main():
     """Main entry point for the plugin CLI."""
     parser = argparse.ArgumentParser(
-        description="My First Plugin - A sample plugin for Sanctum Letta MCP"
+        description="My First Plugin - A sample plugin for Animus Letta MCP"
     )
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
     
@@ -404,7 +404,7 @@ The BotFather plugin demonstrates integration with external APIs:
 """
 BotFather Plugin
 
-Telegram Bot API integration for Sanctum Letta MCP.
+Telegram Bot API integration for Animus Letta MCP.
 """
 
 import argparse
@@ -459,7 +459,7 @@ The DevOps plugin shows how to handle deployment operations:
 """
 DevOps Plugin
 
-Deployment and infrastructure management for Sanctum Letta MCP.
+Deployment and infrastructure management for Animus Letta MCP.
 """
 
 import argparse
@@ -588,6 +588,6 @@ def execute_rollback(app_name: str, version: str) -> Dict[str, Any]:
 
 ---
 
-**Need Help?** Create an issue on the [GitHub repository](https://github.com/sanctumos/smcp/issues) or contact the maintainer.
+**Need Help?** Visit [animus.uno](https://animus.uno) or follow [@animusuno](https://x.com/animusuno) for support.
 
-> **Note**: This repository has been graduated to **Sanctum Core Module** status. The canonical source is now maintained at [github.com/sanctumos/smcp](https://github.com/sanctumos/smcp). 
+> **Note**: This repository has been graduated to **Animus Core Module** status. Visit [animus.uno](https://animus.uno) for more information. 

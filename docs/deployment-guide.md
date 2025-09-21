@@ -26,7 +26,7 @@ sudo chown smcp:smcp /opt/smcp
 ### 2. Install SMCP
 ```bash
 # Clone to system location
-sudo git clone https://github.com/sanctumos/smcp.git /opt/smcp
+sudo git clone https://github.com/animusos/smcp.git /opt/smcp
 cd /opt/smcp
 
 # Install dependencies
@@ -109,7 +109,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Clone SMCP
-RUN git clone https://github.com/sanctumos/smcp.git .
+RUN git clone https://github.com/animusos/smcp.git .
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
@@ -440,4 +440,4 @@ openssl x509 -in /etc/nginx/ssl/smcp.crt -text -noout | grep "Not After"
 
 ---
 
-**Need help with deployment?** Check the [Troubleshooting Guide](troubleshooting.md) or report issues on [GitHub Issues](https://github.com/sanctumos/smcp/issues).
+**Need help with deployment?** Check the [Troubleshooting Guide](troubleshooting.md) or visit [animus.uno](https://animus.uno) for support.
