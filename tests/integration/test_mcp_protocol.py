@@ -98,7 +98,7 @@ class TestMCPProtocol:
         
         # Check server info
         server_info = result["serverInfo"]
-        assert server_info["name"] == "sanctum-letta-mcp"
+        assert server_info["name"] == "animus-letta-mcp"
         assert "version" in server_info
     
     async def test_message_endpoint_initialized(self, client: httpx.AsyncClient, base_url: str):
