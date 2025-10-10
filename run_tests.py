@@ -74,7 +74,7 @@ def main():
         base_cmd.append("-v")
     
     if not args.no_cov and args.type in ["all", "coverage"]:
-        base_cmd.extend(["--cov=mcp", "--cov-report=term-missing"])
+        base_cmd.extend(["--cov=smcp", "--cov-report=term-missing"])
     
     success = True
     

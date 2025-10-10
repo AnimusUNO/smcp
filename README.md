@@ -105,7 +105,6 @@ When deployed via the master Animus installer, SMCP is automatically:
 |----------|---------|-------------|
 | `MCP_PORT` | `8000` | Port for the MCP server |
 | `MCP_PLUGINS_DIR` | `smcp/plugins/` | Directory containing plugins |
-| `MCP_HOST` | `0.0.0.0` | Host to bind to (default: all interfaces for Docker compatibility) |
 
 ### Example Configuration
 
@@ -382,7 +381,7 @@ See `docs/api-reference.md` for the full matrix.
 
 ```bash
 # Install development dependencies
-pip install -r requirements-dev.txt
+pip install -r requirements.txt
 
 # Run linting
 flake8 smcp/ tests/
@@ -404,7 +403,6 @@ python -m pytest tests/ --cov=smcp --cov-report=html
 ### 🔧 **Configuration & Deployment**
 - **[🚀 Deployment Guide](docs/deployment-guide.md)** - **Production deployment** with systemd, Docker, and reverse proxy
 - **[🔧 Configuration Guide](docs/api-reference.md)** - Complete API documentation and configuration options
-- **[🏗️ MCP Reference Architecture](docs/MCP-Reference-Architecture.md)** - High-level architecture overview
 
 ### 🔗 **Integration & Troubleshooting**
 - **[🔗 Letta MCP Connection Guide](docs/Letta-MCP-Connection-Guide.md)** - Connect Letta clients to SMCP
@@ -412,7 +410,7 @@ python -m pytest tests/ --cov=smcp --cov-report=html
 - **[📊 Monitoring & Health Checks](docs/deployment-guide.md#monitoring-and-logging)** - Production monitoring setup
 
 ### 👨‍💻 **Developer Resources**
-- **[📋 Project Plan](docs/dev/project-plan.md)** - Internal project planning and decisions
+- **[📋 Examples Guide](docs/examples.md)** - **Practical examples** and code samples for all use cases
 
 ## 📄 License
 
