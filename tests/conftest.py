@@ -27,6 +27,8 @@ import aiohttp
 from aiohttp.test_utils import TestClient, TestServer
 from pathlib import Path
 import pytest_asyncio
+# Ensure pytest-asyncio plugin is loaded even if auto-discovery is disabled
+pytest_plugins = ("pytest_asyncio",)
 
 # Add the project root to the path
 sys.path.insert(0, str(Path(__file__).parent.parent))

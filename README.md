@@ -360,7 +360,15 @@ curl -X POST http://localhost:8000/messages/ \
 
 ### Logging
 
-Logs are written to `mcp.log` and stdout. Configure logging levels in `smcp/mcp_server.py`.
+Logs are written to stdout and, by default, to `mcp.log` with rotation. Configure behavior via environment variables:
+
+- `MCP_LOG_LEVEL` (default `INFO`)
+- `MCP_LOG_JSON` (set `true` for JSON logs)
+- `MCP_LOG_FILE` (default `mcp.log`)
+- `MCP_LOG_ROTATION` (`size`, `time`, or `none`)
+- `MCP_DISABLE_FILE_LOG` (set `true` to disable file logging)
+
+See `docs/api-reference.md` for the full matrix.
 
 ## 🤝 Contributing
 
