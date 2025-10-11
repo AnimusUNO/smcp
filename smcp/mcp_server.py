@@ -485,8 +485,8 @@ def parse_arguments():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python smcp/mcp_server.py                    # Run with localhost + Docker containers (default)
-  python smcp/mcp_server.py --host 127.0.0.1   # Localhost-only (more restrictive)
+  python smcp/mcp_server.py                    # Run with localhost-only (secure default)
+  python smcp/mcp_server.py --host 127.0.0.1   # Localhost-only (explicit)
   python smcp/mcp_server.py --allow-external   # Allow external connections
   python smcp/mcp_server.py --port 9000        # Run on custom port
         """
@@ -495,7 +495,7 @@ Examples:
     parser.add_argument(
         "--allow-external",
         action="store_true",
-        help="Allow external connections (default: localhost + Docker containers)"
+        help="Allow external connections (default: localhost-only for security)"
     )
     
     parser.add_argument(
@@ -509,7 +509,7 @@ Examples:
         "--host",
         type=str,
         default=None,
-        help="Host to bind to (default: 0.0.0.0 for localhost + Docker, 127.0.0.1 for localhost-only)"
+        help="Host to bind to (default: 127.0.0.1 for localhost-only, 0.0.0.0 for all interfaces)"
     )
     
     return parser.parse_args()
@@ -526,9 +526,12 @@ def main():
         host = "0.0.0.0"
         logger.warning("⚠️  WARNING: External connections are allowed. This may pose security risks.")
     else:
-        # Default: Bind to 0.0.0.0 to allow localhost + Docker containers
-        host = "0.0.0.0"
-        logger.info("🔒 Security: Server bound to all interfaces (localhost + Docker containers). Use --host 127.0.0.1 for localhost-only.")
+        # Default: Bind to 127.0.0.1 for security, allow MCP_HOST override
+        host = os.getenv("MCP_HOST", "127.0.0.1")
+        if host == "127.0.0.1":
+            logger.info("🔒 Security: Server bound to localhost only. Use --allow-external for network access.")
+        else:
+            logger.warning(f"⚠️  WARNING: Server bound to {host} via MCP_HOST. This may pose security risks.")
     
     logger.info(f"Starting Animus Letta MCP Server on {host}:{args.port}...")
     

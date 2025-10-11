@@ -105,19 +105,23 @@ When deployed via the master Animus installer, SMCP is automatically:
 |----------|---------|-------------|
 | `MCP_PORT` | `8000` | Port for the MCP server |
 | `MCP_PLUGINS_DIR` | `smcp/plugins/` | Directory containing plugins |
+| `MCP_HOST` | `127.0.0.1` | Host to bind to (default: localhost-only for security) |
 
 ### Example Configuration
 
 ```bash
-# Default: localhost + Docker containers
+# Default: localhost-only (secure)
 python smcp/mcp_server.py
 
 # Custom port
 export MCP_PORT=9000
 python smcp/mcp_server.py
 
-# Localhost-only (more restrictive)
+# Localhost-only (explicit)
 python smcp/mcp_server.py --host 127.0.0.1
+
+# Allow external connections (use with caution)
+python smcp/mcp_server.py --allow-external
 
 # Custom plugins directory
 export MCP_PLUGINS_DIR=/path/to/custom/plugins
