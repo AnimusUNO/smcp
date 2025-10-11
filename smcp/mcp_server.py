@@ -545,12 +545,9 @@ async def health_check(ctx: Context) -> Sequence[ContentBlock]:
 
 def create_server(host: str, port: int) -> FastMCP:
     """Create and configure the FastMCP server instance."""
+    # Create FastMCP instance with proper name
+    # The name should match what tests expect: "animus-letta-mcp"
     server = FastMCP(name="animus-letta-mcp")
-    
-    # Set up the server to run on the specified host and port
-    # Note: FastMCP uses uvicorn under the hood
-    server.host = host
-    server.port = port
     
     return server
 
