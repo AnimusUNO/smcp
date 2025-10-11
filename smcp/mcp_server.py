@@ -275,6 +275,62 @@ async def execute_plugin_tool(tool_name: str, arguments: Dict[str, Any], ctx: Co
         return {"error": error_msg}
 
 
+def _get_tool_annotations(plugin_name: str, command: str) -> ToolAnnotations:
+    """Determine appropriate tool annotations based on command semantics."""
+    
+    # Default to conservative (safe) annotations
+    read_only = True
+    destructive = False
+    idempotent = True
+    open_world = False
+    
+    # Command-specific logic
+    if command in ["status", "health", "list", "info", "show", "get", "read", "check"]:
+        # Read-only operations
+        read_only = True
+        destructive = False
+        idempotent = True
+        open_world = False
+    elif command in ["deploy", "rollback", "restart", "stop", "start", "delete", "remove", "destroy"]:
+        # Destructive operations
+        read_only = False
+        destructive = True
+        idempotent = False
+        open_world = True
+    elif command in ["send-message", "click-button", "notify", "alert"]:
+        # External communication (open world)
+        read_only = False
+        destructive = False
+        idempotent = False
+        open_world = True
+    elif command in ["create", "add", "install", "configure", "setup"]:
+        # Creation operations
+        read_only = False
+        destructive = False
+        idempotent = False
+        open_world = False
+    elif command in ["update", "modify", "edit", "change"]:
+        # Modification operations
+        read_only = False
+        destructive = False
+        idempotent = False
+        open_world = False
+    else:
+        # Unknown commands - be conservative
+        read_only = True
+        destructive = False
+        idempotent = True
+        open_world = False
+    
+    return ToolAnnotations(
+        title=f"{plugin_name.title()} {command.replace('-', ' ').title()}",
+        readOnlyHint=read_only,
+        destructiveHint=destructive,
+        idempotentHint=idempotent,
+        openWorldHint=open_world
+    )
+
+
 def create_tool_from_plugin(plugin_name: str, command: str, cli_path: str) -> None:
     """Create a tool from a plugin command and register it with FastMCP.
 
@@ -344,16 +400,13 @@ def create_tool_from_plugin(plugin_name: str, command: str, cli_path: str) -> No
             + (f" (params: {param_keys})" if param_keys else "")
         )
 
+        # Determine tool annotations based on command semantics
+        annotations = _get_tool_annotations(plugin_name, command)
+        
         @server.tool(
             name=tool_name,
             description=description,
-            annotations=ToolAnnotations(
-                title=f"{plugin_name.title()} {command.replace('-', ' ').title()}",
-                readOnlyHint=False,
-                destructiveHint=True,
-                idempotentHint=False,
-                openWorldHint=True
-            )
+            annotations=annotations
         )
         async def plugin_tool(ctx: Context, **kwargs) -> Sequence[ContentBlock]:
             """Execute a plugin command."""
