@@ -621,8 +621,9 @@ def main():
     
     # Run the server with streamable HTTP transport (proper MCP protocol support)
     logger.info("Starting server with streamable HTTP transport...")
-    import asyncio
-    asyncio.run(server.run_streamable_http_async())
+    import uvicorn
+    app = server.streamable_http_app()
+    uvicorn.run(app, host=host, port=args.port)
 
 
 if __name__ == "__main__":
