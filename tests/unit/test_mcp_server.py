@@ -22,6 +22,7 @@ from smcp.mcp_server import (
     execute_plugin_tool,
     create_tool_from_plugin,
     register_plugin_tools,
+    health_check,
     plugin_registry
 )
 
