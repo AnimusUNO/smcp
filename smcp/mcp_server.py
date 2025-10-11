@@ -36,6 +36,18 @@ from typing import Dict, Any, List, Sequence
 from mcp.server.fastmcp import FastMCP, Context
 from mcp.types import ContentBlock, ToolAnnotations, TextContent
 
+# Global variables
+server: FastMCP | None = None
+plugin_registry: Dict[str, Dict[str, Any]] = {}
+metrics: Dict[str, Any] = {
+    "start_time": time.time(),
+    "plugins_discovered": 0,
+    "tools_registered": 0,
+    "tool_calls_total": 0,
+    "tool_calls_success": 0,
+    "tool_calls_error": 0,
+}
+
 # --- Logging configuration ----------------------------------------------------
 
 _LOG_CONFIGURED = False
@@ -531,6 +543,18 @@ async def health_check(ctx: Context) -> Sequence[ContentBlock]:
     return [TextContent(type="text", text=json.dumps(status, indent=2))]
 
 
+def create_server(host: str, port: int) -> FastMCP:
+    """Create and configure the FastMCP server instance."""
+    server = FastMCP(name="animus-letta-mcp")
+    
+    # Set up the server to run on the specified host and port
+    # Note: FastMCP uses uvicorn under the hood
+    server.host = host
+    server.port = port
+    
+    return server
+
+
 def parse_arguments():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(
@@ -600,7 +624,9 @@ def main():
     
     # Run the server with SSE transport
     logger.info("Starting server with SSE transport...")
-    server.run(transport="sse")
+    import uvicorn
+    app = server.sse_app()
+    uvicorn.run(app, host=host, port=args.port)
 
 
 if __name__ == "__main__":
