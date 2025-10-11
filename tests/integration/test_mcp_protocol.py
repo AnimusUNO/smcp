@@ -108,7 +108,7 @@ def base_url(test_port: int) -> str:
 @pytest.fixture
 async def client() -> AsyncGenerator[httpx.AsyncClient, None]:
     """Create HTTP client for testing."""
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
         yield client
 
 
