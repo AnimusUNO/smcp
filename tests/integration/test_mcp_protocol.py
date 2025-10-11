@@ -344,7 +344,7 @@ class TestMCPProtocol:
             f"{base_url}/mcp",
             json=message_request,
             headers=headers,
-            timeout=5.0
+            timeout=2.0
         )
         
         assert response.status_code == 400  # tools/list method not implemented yet

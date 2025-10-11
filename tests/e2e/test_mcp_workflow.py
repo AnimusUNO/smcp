@@ -242,7 +242,7 @@ class TestMCPWorkflow:
                 "content-type": "application/json",
                 "Accept": "application/json, text/event-stream"
             },
-            timeout=5.0
+            timeout=2.0
         )
         
         assert response.status_code == 400  # Malformed JSON should return 400 Bad Request
@@ -259,7 +259,7 @@ class TestMCPWorkflow:
                 "Accept": "application/json, text/event-stream",
                 "Content-Type": "application/json"
             },
-            timeout=5.0
+            timeout=2.0
         )
         
         assert response.status_code == 400  # Invalid method should return 400 Bad Request
@@ -280,7 +280,7 @@ class TestMCPWorkflow:
                 "Accept": "application/json, text/event-stream",
                 "Content-Type": "application/json"
             },
-            timeout=5.0
+            timeout=2.0
         )
         
         assert response.status_code == 400  # Invalid tool call should return 400 Bad Request
