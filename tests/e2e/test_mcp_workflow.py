@@ -258,14 +258,30 @@ class TestMCPWorkflow:
                 }
             }
             
+            # Set proper headers for MCP protocol
+            headers = {
+                'Accept': 'application/json, text/event-stream',
+                'Content-Type': 'application/json'
+            }
+            
             response = await client.post(
                 f"{base_url}/mcp",
                 json=call_request,
+                headers=headers,
                 timeout=15.0  # Plugin execution might take longer
             )
             
             assert response.status_code == 200
-            data = response.json()
+            
+            # Parse SSE response format
+            response_text = response.text
+            if "event: message" in response_text and "data: " in response_text:
+                # Extract JSON from SSE format (handle both \n and \r\n)
+                json_start = response_text.find("data: ") + 6
+                json_data = response_text[json_start:].strip()
+                data = json.loads(json_data)
+            else:
+                data = response.json()
             
             # Tool should either succeed or return a meaningful error
             if "result" in data:
@@ -416,9 +432,16 @@ class TestMCPWorkflow:
             }
         }
         
+        # Set proper headers for MCP protocol
+        headers = {
+            'Accept': 'application/json, text/event-stream',
+            'Content-Type': 'application/json'
+        }
+        
         response = await client.post(
             f"{base_url}/mcp",
             json=initialize_request,
+            headers=headers,
             timeout=10.0
         )
         
@@ -434,6 +457,7 @@ class TestMCPWorkflow:
         await client.post(
             f"{base_url}/mcp",
             json=initialized_notification,
+            headers=headers,
             timeout=10.0
         )
     
