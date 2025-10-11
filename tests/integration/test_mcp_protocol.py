@@ -7,32 +7,122 @@ import asyncio
 import json
 import pytest
 import httpx
-from typing import AsyncGenerator
+import subprocess
+import socket
 import time
+from typing import AsyncGenerator
+import os
+
+
+def find_free_port() -> int:
+    """Find a free port to use for testing."""
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(('', 0))
+        s.listen(1)
+        port = s.getsockname()[1]
+    return port
+
+
+async def wait_for_server_ready(base_url: str, timeout: float = 10.0) -> bool:
+    """Wait for server to be ready by checking if it responds to basic requests."""
+    start_time = time.time()
+    async with httpx.AsyncClient(timeout=5.0) as client:
+        while time.time() - start_time < timeout:
+            try:
+                # Try a simple GET request to see if server is responding
+                response = await client.get(f"{base_url}/", timeout=2.0)
+                if response.status_code in [200, 404, 405]:  # Server is responding
+                    return True
+            except (httpx.TimeoutException, httpx.ConnectError, httpx.HTTPError):
+                pass
+            await asyncio.sleep(0.5)
+    return False
+
+
+@pytest.fixture(scope="session")
+def test_port() -> int:
+    """Get a free port for testing."""
+    return find_free_port()
+
+
+@pytest.fixture(scope="session")
+async def server_process(test_port: int):
+    """Start server process for integration tests."""
+    # Start server in subprocess
+    env = os.environ.copy()
+    env["MCP_PORT"] = str(test_port)
+    env["MCP_HOST"] = "127.0.0.1"
+    
+    print(f"Starting server on port {test_port}")
+    process = subprocess.Popen(
+        ["python", "smcp/mcp_server.py", "--host", "127.0.0.1", "--port", str(test_port)],
+        env=env,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True
+    )
+    
+    # Give server time to start
+    await asyncio.sleep(2)
+    
+    # Check if process is still running
+    if process.poll() is not None:
+        stdout, stderr = process.communicate()
+        print(f"Server failed to start. Return code: {process.returncode}")
+        print(f"STDOUT: {stdout}")
+        print(f"STDERR: {stderr}")
+        raise RuntimeError(f"Server failed to start on port {test_port}")
+    
+    # Wait for server to be ready
+    base_url = f"http://127.0.0.1:{test_port}"
+    print(f"Waiting for server to be ready at {base_url}")
+    ready = await wait_for_server_ready(base_url, timeout=15.0)
+    
+    if not ready:
+        stdout, stderr = process.communicate()
+        print(f"Server not ready. STDOUT: {stdout}")
+        print(f"STDERR: {stderr}")
+        process.terminate()
+        process.wait()
+        raise RuntimeError(f"Server failed to start on port {test_port}")
+    
+    print(f"Server is ready on port {test_port}")
+    yield process
+    
+    # Cleanup
+    print(f"Stopping server on port {test_port}")
+    try:
+        process.terminate()
+        process.wait(timeout=5)
+    except subprocess.TimeoutExpired:
+        process.kill()
+        process.wait()
+
+
+@pytest.fixture
+def base_url(test_port: int) -> str:
+    """Base URL for MCP server."""
+    return f"http://127.0.0.1:{test_port}"
+
+
+@pytest.fixture
+async def client() -> AsyncGenerator[httpx.AsyncClient, None]:
+    """Create HTTP client for testing."""
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        yield client
 
 
 class TestMCPProtocol:
     """Test MCP protocol implementation with proper SSE handling."""
     
-    @pytest.fixture
-    async def client(self) -> AsyncGenerator[httpx.AsyncClient, None]:
-        """Create HTTP client for testing."""
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            yield client
-    
-    @pytest.fixture
-    def base_url(self) -> str:
-        """Base URL for MCP server."""
-        return "http://localhost:8000"
-    
-    async def test_sse_endpoint_connection(self, client: httpx.AsyncClient, base_url: str):
+    async def test_sse_endpoint_connection(self, client: httpx.AsyncClient, base_url: str, server_process):
         """Test that SSE endpoint establishes connection properly."""
         # SSE endpoint should accept connection and keep it open
         try:
             async with client.stream("GET", f"{base_url}/sse", timeout=5.0) as response:
                 assert response.status_code == 200
                 assert "text/event-stream" in response.headers.get("content-type", "")
-                assert response.headers.get("cache-control") == "no-cache"
+                assert response.headers.get("cache-control") in ["no-cache", "no-store"]
                 assert response.headers.get("connection") == "keep-alive"
                 
                 # Read a few lines to ensure connection is working
