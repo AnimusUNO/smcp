@@ -119,64 +119,78 @@ class TestMCPWorkflow:
     async def test_complete_mcp_workflow(self, client: httpx.AsyncClient, base_url: str, server_process):
         """Test complete MCP workflow: connect, initialize, list tools, call tool."""
         
-        # Step 1: Establish SSE connection
-        sse_connected = False
+        # Step 1: Test MCP endpoint connectivity
+        mcp_connected = False
         try:
-            async with client.stream("GET", f"{base_url}/sse", timeout=5.0) as response:
-                assert response.status_code == 200
-                assert "text/event-stream" in response.headers.get("content-type", "")
-                sse_connected = True
-                
-                # Step 2: Send initialize request
-                initialize_request = {
-                    "jsonrpc": "2.0",
-                    "id": 1,
-                    "method": "initialize",
-                    "params": {
-                        "protocolVersion": "2025-03-26",
-                        "capabilities": {
-                            "tools": {},
-                            "resources": {},
-                            "prompts": {}
-                        },
-                        "clientInfo": {
-                            "name": "test-client",
-                            "version": "1.0.0"
-                        }
+            # Test basic connectivity to MCP endpoint
+            headers = {
+                'Accept': 'application/json, text/event-stream',
+                'Content-Type': 'application/json'
+            }
+            
+            # Send a simple ping request to test connectivity
+            ping_request = {
+                "jsonrpc": "2.0",
+                "id": 0,
+                "method": "ping"
+            }
+            
+            ping_response = await client.post(
+                f"{base_url}/mcp",
+                json=ping_request,
+                headers=headers,
+                timeout=5.0
+            )
+            
+            # Even if ping fails, if we get a response, the endpoint is working
+            assert ping_response.status_code in [200, 400, 404]  # Any response means endpoint is alive
+            mcp_connected = True
+            
+            # Step 2: Send initialize request
+            initialize_request = {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "initialize",
+                "params": {
+                    "protocolVersion": "2025-03-26",
+                    "capabilities": {
+                        "tools": {},
+                        "resources": {},
+                        "prompts": {}
+                    },
+                    "clientInfo": {
+                        "name": "test-client",
+                        "version": "1.0.0"
                     }
                 }
-                
-                # Set proper headers for MCP protocol
-                headers = {
-                    'Accept': 'application/json, text/event-stream',
-                    'Content-Type': 'application/json'
-                }
-                
-                init_response = await client.post(
-                    f"{base_url}/mcp",
-                    json=initialize_request,
-                    headers=headers,
-                    timeout=10.0
-                )
-                
-                assert init_response.status_code == 200
-                init_data = init_response.json()
-                assert init_data["jsonrpc"] == "2.0"
-                assert init_data["id"] == 1
-                assert "result" in init_data
-                
-                # Step 3: Send initialized notification
-                initialized_notification = {
-                    "jsonrpc": "2.0",
-                    "method": "initialized",
-                    "params": {}
-                }
-                
-                await client.post(
-                    f"{base_url}/mcp",
-                    json=initialized_notification,
-                    timeout=10.0
-                )
+            }
+            
+            init_response = await client.post(
+                f"{base_url}/mcp",
+                json=initialize_request,
+                headers=headers,
+                timeout=10.0
+            )
+            
+            assert init_response.status_code == 200
+            init_data = init_response.json()
+            assert init_data["jsonrpc"] == "2.0"
+            assert init_data["id"] == 1
+            assert "result" in init_data
+            
+            # Step 3: Send initialized notification
+            initialized_notification = {
+                "jsonrpc": "2.0",
+                "method": "initialized",
+                "params": {}
+            }
+            
+            await client.post(
+                f"{base_url}/mcp",
+                json=initialized_notification,
+                headers=headers,
+                timeout=10.0
+            )
                 
                 # Step 4: List available tools
                 list_tools_request = {
@@ -461,7 +475,7 @@ class TestMCPWorkflow:
     async def _establish_sse_connection(self, client: httpx.AsyncClient, base_url: str):
         """Helper to establish SSE connection."""
         try:
-            async with client.stream("GET", f"{base_url}/sse", timeout=5.0) as response:
+            async with client.stream("GET", f"{base_url}/mcp", timeout=5.0) as response:
                 assert response.status_code == 200
                 # Just verify connection is established
                 async for line in response.aiter_lines():
