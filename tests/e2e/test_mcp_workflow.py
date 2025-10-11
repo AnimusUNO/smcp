@@ -169,7 +169,7 @@ class TestMCPWorkflow:
                 f"{base_url}/mcp",
                 json=initialize_request,
                 headers=headers,
-                timeout=10.0
+                timeout=5.0
             )
             
             assert init_response.status_code == 200
@@ -205,7 +205,7 @@ class TestMCPWorkflow:
                 f"{base_url}/mcp",
                 json=initialized_notification,
                 headers=headers,
-                timeout=10.0
+                timeout=5.0
             )
             
             # Step 4: Verify MCP protocol is working
@@ -242,7 +242,7 @@ class TestMCPWorkflow:
                 "content-type": "application/json",
                 "Accept": "application/json, text/event-stream"
             },
-            timeout=10.0
+            timeout=5.0
         )
         
         assert response.status_code == 400  # Malformed JSON should return 400 Bad Request
@@ -259,7 +259,7 @@ class TestMCPWorkflow:
                 "Accept": "application/json, text/event-stream",
                 "Content-Type": "application/json"
             },
-            timeout=10.0
+            timeout=5.0
         )
         
         assert response.status_code == 400  # Invalid method should return 400 Bad Request
@@ -280,7 +280,7 @@ class TestMCPWorkflow:
                 "Accept": "application/json, text/event-stream",
                 "Content-Type": "application/json"
             },
-            timeout=10.0
+            timeout=5.0
         )
         
         assert response.status_code == 400  # Invalid tool call should return 400 Bad Request
@@ -330,7 +330,7 @@ class TestMCPWorkflow:
             f"{base_url}/mcp",
             json=initialize_request,
             headers=headers,
-            timeout=10.0
+            timeout=5.0
         )
         
         assert response.status_code == 200
@@ -346,7 +346,7 @@ class TestMCPWorkflow:
             f"{base_url}/mcp",
             json=initialized_notification,
             headers=headers,
-            timeout=10.0
+            timeout=5.0
         )
     
     async def _establish_sse_connection(self, client: httpx.AsyncClient, base_url: str):
