@@ -9,9 +9,102 @@ import pytest
 import httpx
 import subprocess
 import time
+import socket
+import os
 from typing import AsyncGenerator, Dict, Any
 from pathlib import Path
 import sys
+
+
+def find_free_port() -> int:
+    """Find a free port to use for testing."""
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(('', 0))
+        s.listen(1)
+        port = s.getsockname()[1]
+    return port
+
+
+async def wait_for_server_ready(base_url: str, timeout: float = 10.0) -> bool:
+    """Wait for server to be ready by checking if it responds to basic requests."""
+    start_time = time.time()
+    async with httpx.AsyncClient(timeout=5.0) as client:
+        while time.time() - start_time < timeout:
+            try:
+                # Try a simple GET request to see if server is responding
+                response = await client.get(f"{base_url}/", timeout=2.0)
+                if response.status_code in [200, 404, 405]:  # Server is responding
+                    return True
+            except (httpx.TimeoutException, httpx.ConnectError, httpx.HTTPError):
+                pass
+            await asyncio.sleep(0.5)
+    return False
+
+
+@pytest.fixture(scope="session")
+def test_port() -> int:
+    """Get a free port for testing."""
+    return find_free_port()
+
+
+@pytest.fixture(scope="session")
+async def server_process(test_port: int):
+    """Start server process for E2E tests."""
+    # Start server in subprocess
+    env = os.environ.copy()
+    env["MCP_PORT"] = str(test_port)
+    env["MCP_HOST"] = "127.0.0.1"
+
+    print(f"Starting E2E server on port {test_port}")
+    process = subprocess.Popen(
+        ["python", "smcp/mcp_server.py", "--host", "127.0.0.1", "--port", str(test_port)],
+        env=env,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True
+    )
+
+    # Give server time to start
+    await asyncio.sleep(2)
+
+    # Check if process is still running
+    if process.poll() is not None:
+        stdout, stderr = process.communicate()
+        print(f"E2E Server failed to start. Return code: {process.returncode}")
+        print(f"STDOUT: {stdout}")
+        print(f"STDERR: {stderr}")
+        raise RuntimeError(f"E2E Server failed to start on port {test_port}")
+
+    # Wait for server to be ready
+    base_url = f"http://127.0.0.1:{test_port}"
+    print(f"Waiting for E2E server to be ready at {base_url}")
+    ready = await wait_for_server_ready(base_url, timeout=15.0)
+
+    if not ready:
+        stdout, stderr = process.communicate()
+        print(f"E2E Server not ready. STDOUT: {stdout}")
+        print(f"STDERR: {stderr}")
+        process.terminate()
+        process.wait()
+        raise RuntimeError(f"E2E Server failed to start on port {test_port}")
+
+    print(f"E2E Server is ready on port {test_port}")
+    yield process
+
+    # Cleanup
+    print(f"Stopping E2E server on port {test_port}")
+    try:
+        process.terminate()
+        process.wait(timeout=5)
+    except subprocess.TimeoutExpired:
+        process.kill()
+        process.wait()
+
+
+@pytest.fixture
+def base_url(test_port: int) -> str:
+    """Base URL for MCP server."""
+    return f"http://127.0.0.1:{test_port}"
 
 
 class TestMCPWorkflow:
@@ -20,34 +113,10 @@ class TestMCPWorkflow:
     @pytest.fixture
     async def client(self) -> AsyncGenerator[httpx.AsyncClient, None]:
         """Create HTTP client for testing."""
-        async with httpx.AsyncClient(timeout=30.0) as client:
+        async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
             yield client
     
-    @pytest.fixture
-    def base_url(self) -> str:
-        """Base URL for MCP server."""
-        return "http://localhost:8000"
-    
-    @pytest.fixture
-    def server_process(self):
-        """Start MCP server for testing."""
-        # Start server in background
-        process = subprocess.Popen(
-            [sys.executable, "smcp/mcp_server.py"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
-        
-        # Wait for server to start
-        time.sleep(3)
-        
-        yield process
-        
-        # Cleanup
-        process.terminate()
-        process.wait()
-    
-    async def test_complete_mcp_workflow(self, client: httpx.AsyncClient, base_url: str):
+    async def test_complete_mcp_workflow(self, client: httpx.AsyncClient, base_url: str, server_process):
         """Test complete MCP workflow: connect, initialize, list tools, call tool."""
         
         # Step 1: Establish SSE connection
@@ -77,9 +146,16 @@ class TestMCPWorkflow:
                     }
                 }
                 
+                # Set proper headers for MCP protocol
+                headers = {
+                    'Accept': 'application/json, text/event-stream',
+                    'Content-Type': 'application/json'
+                }
+                
                 init_response = await client.post(
-                    f"{base_url}/messages/",
+                    f"{base_url}/mcp",
                     json=initialize_request,
+                    headers=headers,
                     timeout=10.0
                 )
                 
@@ -97,7 +173,7 @@ class TestMCPWorkflow:
                 }
                 
                 await client.post(
-                    f"{base_url}/messages/",
+                    f"{base_url}/mcp",
                     json=initialized_notification,
                     timeout=10.0
                 )
@@ -110,7 +186,7 @@ class TestMCPWorkflow:
                 }
                 
                 tools_response = await client.post(
-                    f"{base_url}/messages/",
+                    f"{base_url}/mcp",
                     json=list_tools_request,
                     timeout=10.0
                 )
@@ -138,7 +214,7 @@ class TestMCPWorkflow:
                 }
                 
                 health_response = await client.post(
-                    f"{base_url}/messages/",
+                    f"{base_url}/mcp",
                     json=call_health_request,
                     timeout=10.0
                 )
@@ -166,7 +242,7 @@ class TestMCPWorkflow:
             # If SSE connected but other operations failed, that's a test failure
             raise
     
-    async def test_plugin_tool_execution(self, client: httpx.AsyncClient, base_url: str):
+    async def test_plugin_tool_execution(self, client: httpx.AsyncClient, base_url: str, server_process):
         """Test execution of plugin tools."""
         
         # First initialize the connection
@@ -174,7 +250,7 @@ class TestMCPWorkflow:
         
         # List tools to find plugin tools
         tools_response = await client.post(
-            f"{base_url}/messages/",
+            f"{base_url}/mcp",
             json={
                 "jsonrpc": "2.0",
                 "id": 1,
@@ -204,7 +280,7 @@ class TestMCPWorkflow:
             }
             
             response = await client.post(
-                f"{base_url}/messages/",
+                f"{base_url}/mcp",
                 json=call_request,
                 timeout=15.0  # Plugin execution might take longer
             )
@@ -220,12 +296,12 @@ class TestMCPWorkflow:
                 assert "code" in data["error"]
                 assert "message" in data["error"]
     
-    async def test_error_handling(self, client: httpx.AsyncClient, base_url: str):
+    async def test_error_handling(self, client: httpx.AsyncClient, base_url: str, server_process):
         """Test error handling for various scenarios."""
         
         # Test malformed JSON
         response = await client.post(
-            f"{base_url}/messages/",
+            f"{base_url}/mcp",
             content="invalid json",
             headers={"content-type": "application/json"},
             timeout=10.0
@@ -238,7 +314,7 @@ class TestMCPWorkflow:
         
         # Test invalid method
         response = await client.post(
-            f"{base_url}/messages/",
+            f"{base_url}/mcp",
             json={
                 "jsonrpc": "2.0",
                 "id": 1,
@@ -254,7 +330,7 @@ class TestMCPWorkflow:
         
         # Test invalid tool call
         response = await client.post(
-            f"{base_url}/messages/",
+            f"{base_url}/mcp",
             json={
                 "jsonrpc": "2.0",
                 "id": 2,
@@ -271,7 +347,7 @@ class TestMCPWorkflow:
         data = response.json()
         assert "error" in data
     
-    async def test_concurrent_sessions(self, client: httpx.AsyncClient, base_url: str):
+    async def test_concurrent_sessions(self, client: httpx.AsyncClient, base_url: str, server_process):
         """Test handling of concurrent sessions."""
         
         # Create multiple SSE connections
@@ -288,7 +364,7 @@ class TestMCPWorkflow:
         for i in range(5):
             task = asyncio.create_task(
                 client.post(
-                    f"{base_url}/messages/",
+                    f"{base_url}/mcp",
                     json={
                         "jsonrpc": "2.0",
                         "id": i,
@@ -318,7 +394,7 @@ class TestMCPWorkflow:
         except asyncio.CancelledError:
             pass
     
-    async def test_server_restart_recovery(self, client: httpx.AsyncClient, base_url: str):
+    async def test_server_restart_recovery(self, client: httpx.AsyncClient, base_url: str, server_process):
         """Test that client can recover from server restart."""
         
         # Establish connection
@@ -326,7 +402,7 @@ class TestMCPWorkflow:
         
         # Send a request
         response = await client.post(
-            f"{base_url}/messages/",
+            f"{base_url}/mcp",
             json={
                 "jsonrpc": "2.0",
                 "id": 1,
@@ -362,7 +438,7 @@ class TestMCPWorkflow:
         }
         
         response = await client.post(
-            f"{base_url}/messages/",
+            f"{base_url}/mcp",
             json=initialize_request,
             timeout=10.0
         )
@@ -377,7 +453,7 @@ class TestMCPWorkflow:
         }
         
         await client.post(
-            f"{base_url}/messages/",
+            f"{base_url}/mcp",
             json=initialized_notification,
             timeout=10.0
         )
