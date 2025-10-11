@@ -167,9 +167,16 @@ class TestMCPProtocol:
             }
         }
         
+        # Set proper headers for MCP protocol
+        headers = {
+            'Accept': 'application/json, text/event-stream',
+            'Content-Type': 'application/json'
+        }
+        
         response = await client.post(
-            f"{base_url}/messages/",
+            f"{base_url}/mcp",
             json=initialize_request,
+            headers=headers,
             timeout=10.0
         )
         
@@ -199,9 +206,16 @@ class TestMCPProtocol:
             "params": {}
         }
         
+        # Set proper headers for MCP protocol
+        headers = {
+            'Accept': 'application/json, text/event-stream',
+            'Content-Type': 'application/json'
+        }
+        
         response = await client.post(
-            f"{base_url}/messages/",
+            f"{base_url}/mcp",
             json=initialized_notification,
+            headers=headers,
             timeout=10.0
         )
         
@@ -217,9 +231,16 @@ class TestMCPProtocol:
             "method": "tools/list"
         }
         
+        # Set proper headers for MCP protocol
+        headers = {
+            'Accept': 'application/json, text/event-stream',
+            'Content-Type': 'application/json'
+        }
+        
         response = await client.post(
-            f"{base_url}/messages/",
+            f"{base_url}/mcp",
             json=list_tools_request,
+            headers=headers,
             timeout=10.0
         )
         
@@ -254,9 +275,16 @@ class TestMCPProtocol:
             }
         }
         
+        # Set proper headers for MCP protocol
+        headers = {
+            'Accept': 'application/json, text/event-stream',
+            'Content-Type': 'application/json'
+        }
+        
         response = await client.post(
-            f"{base_url}/messages/",
+            f"{base_url}/mcp",
             json=call_tool_request,
+            headers=headers,
             timeout=10.0
         )
         
@@ -288,9 +316,16 @@ class TestMCPProtocol:
             "method": "nonexistent_method"
         }
         
+        # Set proper headers for MCP protocol
+        headers = {
+            'Accept': 'application/json, text/event-stream',
+            'Content-Type': 'application/json'
+        }
+        
         response = await client.post(
-            f"{base_url}/messages/",
+            f"{base_url}/mcp",
             json=invalid_request,
+            headers=headers,
             timeout=10.0
         )
         
@@ -306,10 +341,16 @@ class TestMCPProtocol:
     
     async def test_malformed_json(self, client: httpx.AsyncClient, base_url: str):
         """Test handling of malformed JSON."""
+        # Set proper headers for MCP protocol
+        headers = {
+            'Accept': 'application/json, text/event-stream',
+            'Content-Type': 'application/json'
+        }
+        
         response = await client.post(
-            f"{base_url}/messages/",
+            f"{base_url}/mcp",
             content="invalid json",
-            headers={"content-type": "application/json"},
+            headers=headers,
             timeout=10.0
         )
         
@@ -331,7 +372,10 @@ class TestMCPProtocol:
                 "method": "tools/list"
             }
             requests.append(
-                client.post(f"{base_url}/messages/", json=request, timeout=10.0)
+                client.post(f"{base_url}/mcp", json=request, headers={
+                    'Accept': 'application/json, text/event-stream',
+                    'Content-Type': 'application/json'
+                }, timeout=10.0)
             )
         
         responses = await asyncio.gather(*requests)
@@ -357,9 +401,16 @@ class TestMCPProtocol:
             "method": "tools/list"
         }
         
+        # Set proper headers for MCP protocol
+        headers = {
+            'Accept': 'application/json, text/event-stream',
+            'Content-Type': 'application/json'
+        }
+        
         response = await client.post(
-            f"{base_url}/messages/",
+            f"{base_url}/mcp",
             json=message_request,
+            headers=headers,
             timeout=10.0
         )
         

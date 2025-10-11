@@ -619,11 +619,10 @@ def main():
     # Register plugin tools
     register_plugin_tools(server)
     
-    # Run the server with SSE transport
-    logger.info("Starting server with SSE transport...")
-    import uvicorn
-    app = server.sse_app()
-    uvicorn.run(app, host=host, port=args.port)
+    # Run the server with streamable HTTP transport (proper MCP protocol support)
+    logger.info("Starting server with streamable HTTP transport...")
+    import asyncio
+    asyncio.run(server.run_streamable_http_async())
 
 
 if __name__ == "__main__":
