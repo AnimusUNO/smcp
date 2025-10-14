@@ -44,4 +44,4 @@ docs/dev/
 
 # Distribution
 dist/
-build/ 
+build/ tmp/
