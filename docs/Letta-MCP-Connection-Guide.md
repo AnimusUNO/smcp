@@ -4,24 +4,37 @@ This guide provides comprehensive specifications for connecting Model Context Pr
 
 ## ⚠️ CRITICAL UPDATE
 
-**Previous versions of this documentation contained incorrect examples.** The key correction:
+**Previous versions of this documentation contained incorrect examples.** The key corrections:
 
 - **❌ WRONG**: Custom JSON objects like `{"type": "connection_established"}`
 - **✅ CORRECT**: Pure JSON-RPC 2.0 messages for ALL communication
+- **❌ WRONG**: Using FastMCP for SSE servers (unidirectional only)
+- **✅ CORRECT**: Use base MCP library with `mcp.server.Server` and `mcp.server.sse.SseServerTransport`
 
 Letta uses the official MCP library which expects **JSON-RPC 2.0 over SSE** for all messages. Custom message types are not supported.
+
+### 🚨 FastMCP SSE Limitation Warning
+
+**DO NOT USE FastMCP for SSE servers with Letta!** FastMCP's SSE implementation is unidirectional (server→client only) and does not support the bidirectional communication that Letta's SSE client requires. This will cause connection failures and tool visibility issues.
+
+**Use the base MCP library instead:**
+```python
+from mcp.server import Server
+from mcp.server.sse import SseServerTransport
+```
 
 ## Table of Contents
 
 1. [Overview](#overview)
-2. [MCP Server Types Supported](#mcp-server-types-supported)
-3. [SSE Endpoint Specifications](#sse-endpoint-specifications)
-4. [Authentication Methods](#authentication-methods)
-5. [Configuration Methods](#configuration-methods)
-6. [API Endpoints](#api-endpoints)
-7. [Implementation Examples](#implementation-examples)
-8. [Testing and Debugging](#testing-and-debugging)
-9. [Troubleshooting](#troubleshooting)
+2. [FastMCP vs Base MCP Library](#fastmcp-vs-base-mcp-library)
+3. [MCP Server Types Supported](#mcp-server-types-supported)
+4. [SSE Endpoint Specifications](#sse-endpoint-specifications)
+5. [Authentication Methods](#authentication-methods)
+6. [Configuration Methods](#configuration-methods)
+7. [API Endpoints](#api-endpoints)
+8. [Implementation Examples](#implementation-examples)
+9. [Testing and Debugging](#testing-and-debugging)
+10. [Troubleshooting](#troubleshooting)
 
 ## Overview
 
@@ -31,6 +44,74 @@ Letta supports three types of MCP server connections:
 - **Streamable HTTP**: For HTTP-based MCP servers with streaming capabilities
 
 This guide focuses on **SSE endpoints** as they are the most common for remote MCP server implementations.
+
+## FastMCP vs Base MCP Library
+
+### ⚠️ Critical Distinction for SSE Servers
+
+**FastMCP** and the **base MCP library** serve different purposes and have different SSE implementations:
+
+#### FastMCP (`mcp.server.fastmcp.FastMCP`)
+- **Purpose**: Simplified MCP server with built-in FastAPI integration
+- **SSE Implementation**: **Unidirectional only** (server→client)
+- **Compatibility**: ❌ **NOT compatible with Letta's SSE client**
+- **Use Case**: HTTP-based MCP servers, not SSE servers
+
+#### Base MCP Library (`mcp.server.Server` + `mcp.server.sse.SseServerTransport`)
+- **Purpose**: Full MCP protocol implementation with proper transport layers
+- **SSE Implementation**: **Bidirectional** (client↔server)
+- **Compatibility**: ✅ **Fully compatible with Letta's SSE client**
+- **Use Case**: SSE-based MCP servers, STDIO servers
+
+### When to Use Which
+
+| Transport | Use FastMCP | Use Base MCP Library |
+|-----------|-------------|---------------------|
+| **SSE** | ❌ **NO** - Unidirectional only | ✅ **YES** - Bidirectional support |
+| **HTTP** | ✅ **YES** - Built-in FastAPI | ✅ **YES** - Custom implementation |
+| **STDIO** | ❌ **NO** - Not supported | ✅ **YES** - Full support |
+
+### Migration from FastMCP to Base MCP Library
+
+If you're currently using FastMCP for SSE and experiencing issues with Letta:
+
+1. **Replace FastMCP imports:**
+   ```python
+   # ❌ Old (FastMCP)
+   from mcp.server.fastmcp import FastMCP
+   
+   # ✅ New (Base MCP)
+   from mcp.server import Server
+   from mcp.server.sse import SseServerTransport
+   ```
+
+2. **Update server creation:**
+   ```python
+   # ❌ Old (FastMCP)
+   server = FastMCP()
+   app = server.sse_app()  # Unidirectional
+   
+   # ✅ New (Base MCP)
+   server = Server(name="my-server", version="1.0.0")
+   sse_transport = SseServerTransport("/messages/")  # Bidirectional
+   ```
+
+3. **Update tool registration:**
+   ```python
+   # ❌ Old (FastMCP)
+   @server.tool(name="my_tool")
+   async def my_tool():
+       pass
+   
+   # ✅ New (Base MCP)
+   @server.list_tools()
+   async def list_tools():
+       return [Tool(name="my_tool", ...)]
+   
+   @server.call_tool()
+   async def call_tool(tool_name: str, arguments: dict):
+       # Handle tool execution
+   ```
 
 ## MCP Server Types Supported
 
@@ -658,26 +739,99 @@ app.listen(5000, () => {
 
 ### Recommended: Use Official MCP Server Framework
 
-For production MCP servers, **strongly consider using the official MCP server framework**:
+For production MCP servers, **use the base MCP library** (NOT FastMCP for SSE):
 
 ```bash
 pip install mcp
 ```
 
-**Example using official framework:**
+**✅ CORRECT Example using base MCP library:**
 ```python
-import mcp
 import asyncio
+import logging
+from mcp.server import Server
+from mcp.server.sse import SseServerTransport
+from mcp.types import ContentBlock, TextContent, Tool
+from starlette.applications import Starlette
+from starlette.routing import Route, Mount
+from starlette.responses import Response
+import uvicorn
 
-# Define your tools
-@mcp.tool()
-async def example_tool(param1: str) -> str:
-    """An example tool"""
-    return f"Executed with parameter: {param1}"
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-# Run the server
+# Create MCP server
+server = Server(name="my-mcp-server", version="1.0.0")
+
+# Define tools
+@server.list_tools()
+async def list_tools():
+    """Return available tools."""
+    return [
+        Tool(
+            name="example_tool",
+            description="An example tool",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "param1": {
+                        "type": "string",
+                        "description": "First parameter"
+                    }
+                },
+                "required": ["param1"]
+            }
+        )
+    ]
+
+@server.call_tool()
+async def call_tool(tool_name: str, arguments: dict):
+    """Handle tool calls."""
+    if tool_name == "example_tool":
+        result = f"Executed {tool_name} with arguments: {arguments}"
+        return [TextContent(type="text", text=result)]
+    else:
+        return [TextContent(type="text", text="Tool not found")]
+
+async def main():
+    # Create SSE transport
+    sse_transport = SseServerTransport("/messages/")
+    
+    # Create Starlette app with SSE endpoints
+    async def sse_endpoint(request):
+        """SSE connection endpoint."""
+        async with sse_transport.connect_sse(
+            request.scope, request.receive, request._send
+        ) as streams:
+            await server.run(
+                streams[0],  # read_stream
+                streams[1],  # write_stream
+                server.create_initialization_options()
+            )
+        return Response()
+    
+    app = Starlette(routes=[
+        Route("/sse", sse_endpoint, methods=["GET"]),
+        Mount("/messages/", app=sse_transport.handle_post_message),
+    ])
+    
+    # Start server
+    config = uvicorn.Config(app, host="0.0.0.0", port=8000, log_level="info")
+    server_instance = uvicorn.Server(config)
+    await server_instance.serve()
+
 if __name__ == "__main__":
-    mcp.run(transport="sse", port=5000)
+    asyncio.run(main())
+```
+
+**❌ DO NOT USE FastMCP for SSE:**
+```python
+# This will NOT work with Letta's SSE client
+from mcp.server.fastmcp import FastMCP
+
+server = FastMCP()
+app = server.sse_app()  # Unidirectional only - incompatible with Letta
 ```
 
 This ensures compatibility with Letta and other MCP clients.
@@ -758,6 +912,48 @@ curl -X POST "http://localhost:8080/v1/tools/mcp/servers/test" \
 #### 8. SSE Connection Hanging
 - **Cause**: SSE connections are persistent and never close automatically
 - **Solution**: Implement timeouts in your client code and handle connection termination gracefully
+
+#### 9. FastMCP SSE Compatibility Issues
+- **Cause**: FastMCP's SSE implementation is unidirectional and incompatible with Letta's bidirectional SSE client
+- **Symptoms**: Tools show in test mode but not in attached mode, connection failures, "session_id required" errors
+- **Solution**: Switch to base MCP library with `mcp.server.Server` and `mcp.server.sse.SseServerTransport`
+
+#### 10. Tools Not Appearing in Letta's Attached Mode
+- **Cause**: Invalid tool schemas or FastMCP compatibility issues
+- **Solution**: Ensure tool schemas are valid JSON Schema, use base MCP library instead of FastMCP
+
+### Real-World Success Story
+
+**SMCP Server Implementation**: Our own MCP server (`smcp.py`) successfully demonstrates the correct approach:
+
+- ✅ **Uses base MCP library**: `mcp.server.Server` + `mcp.server.sse.SseServerTransport`
+- ✅ **Bidirectional SSE communication**: Properly handles both GET `/sse` and POST `/messages/`
+- ✅ **Full Letta compatibility**: Tools appear in both test mode and attached mode
+- ✅ **Plugin system**: Dynamically discovers and registers tools from plugin directories
+- ✅ **Production ready**: Includes proper error handling, logging, and graceful shutdown
+
+**Key Implementation Details:**
+```python
+# Correct SSE endpoint implementation
+async def sse_endpoint(request):
+    async with sse_transport.connect_sse(
+        request.scope, request.receive, request._send
+    ) as streams:
+        await server.run(
+            streams[0],  # read_stream
+            streams[1],  # write_stream
+            server.create_initialization_options()
+        )
+    return Response()
+
+# Correct Starlette app setup
+app = Starlette(routes=[
+    Route("/sse", sse_endpoint, methods=["GET"]),
+    Mount("/messages/", app=sse_transport.handle_post_message),
+])
+```
+
+This implementation resolves all FastMCP compatibility issues and provides full Letta integration.
 
 ### Debug Logs
 
