@@ -95,7 +95,13 @@ logger = setup_logging()
 
 def discover_plugins() -> Dict[str, Dict[str, Any]]:
     """Discover available plugins in the plugins directory."""
-    plugins_dir = Path("/root/sanctum/smcp/v1/plugins")
+    # Use environment variable if set, otherwise use relative path
+    plugins_dir_env = os.getenv("MCP_PLUGINS_DIR")
+    if plugins_dir_env:
+        plugins_dir = Path(plugins_dir_env)
+    else:
+        # Use relative path from current script location
+        plugins_dir = Path(__file__).parent / "plugins"
     plugins = {}
     
     if not plugins_dir.exists():
