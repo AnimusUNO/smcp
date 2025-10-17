@@ -40,7 +40,7 @@ Error: [Errno 98] Address already in use
 **Solutions:**
 ```bash
 # Option 1: Use a different port
-python smcp/mcp_server.py --port 9000
+python smcp.py --port 9000
 
 # Option 2: Find and stop the process using port 8000
 # Linux/Mac:
@@ -64,13 +64,13 @@ Error: [Errno 13] Permission denied
 **Solutions:**
 ```bash
 # Option 1: Check file permissions
-ls -la smcp/mcp_server.py
+ls -la smcp.py
 
 # Option 2: Make executable
-chmod +x smcp/mcp_server.py
+chmod +x smcp.py
 
 # Option 3: Run with appropriate user
-sudo python smcp/mcp_server.py  # Not recommended for production
+sudo python smcp.py  # Not recommended for production
 
 # Option 4: Check directory permissions
 ls -la smcp/
@@ -87,14 +87,14 @@ Error: Plugin directory not found: /path/to/plugins
 ```bash
 # Option 1: Set correct plugin directory
 export MCP_PLUGINS_DIR=smcp/plugins
-python smcp/mcp_server.py
+python smcp.py
 
 # Option 2: Create plugin directory
 mkdir -p smcp/plugins
 
 # Option 3: Use absolute path
 export MCP_PLUGINS_DIR=/full/path/to/smcp/plugins
-python smcp/mcp_server.py
+python smcp.py
 
 # Option 4: Check if plugins directory exists
 ls -la smcp/plugins/
@@ -110,14 +110,14 @@ Error: [Errno 99] Cannot assign requested address
 **Solutions:**
 ```bash
 # Option 1: Use localhost-only binding
-python smcp/mcp_server.py --host 127.0.0.1
+python smcp.py --host 127.0.0.1
 
 # Option 2: Check network interface
 ifconfig  # Linux/Mac
 ipconfig  # Windows
 
 # Option 3: Use specific interface
-python smcp/mcp_server.py --host 0.0.0.0
+python smcp.py --host 0.0.0.0
 
 # Option 4: Check if interface is up
 ip link show
@@ -195,7 +195,7 @@ sudo swapon /swapfile
 **Solutions:**
 ```bash
 # Option 1: Use default binding (0.0.0.0)
-python smcp/mcp_server.py  # This is the default
+python smcp.py  # This is the default
 
 # Option 2: Check Docker network
 docker network ls
@@ -214,7 +214,7 @@ curl http://localhost:8000
 ```bash
 # Set log level to DEBUG
 export LOG_LEVEL=DEBUG
-python smcp/mcp_server.py
+python smcp.py
 
 # Or modify the server code temporarily
 # logging.basicConfig(level=logging.DEBUG)

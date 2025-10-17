@@ -320,14 +320,14 @@ Examples:
     parser.add_argument(
         "--host",
         type=str,
-        default=None,
-        help="Host to bind to (default: 127.0.0.1 for localhost-only, 0.0.0.0 for all interfaces)"
+        default=os.getenv("MCP_HOST", "127.0.0.1"),
+        help="Host to bind to (default: 127.0.0.1 or MCP_HOST env var)"
     )
     
     return parser.parse_args()
 
 
-async def main():
+async def async_main():
     """Main entry point."""
     args = parse_arguments()
     
@@ -336,7 +336,7 @@ async def main():
         host = "0.0.0.0"
         logger.warning("⚠️  WARNING: External connections are allowed. This may pose security risks.")
     else:
-        host = args.host or "127.0.0.1"
+        host = args.host
         if host == "127.0.0.1":
             logger.info("🔒 Security: Server bound to localhost only. Use --allow-external for network access.")
     
@@ -429,5 +429,10 @@ async def main():
     await server_instance.serve()
 
 
+def main():
+    """Synchronous entry point for console script."""
+    asyncio.run(async_main())
+
+
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(async_main())

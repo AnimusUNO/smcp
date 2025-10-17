@@ -64,8 +64,7 @@ async def server_process(test_port: int):
         text=True
     )
 
-    # Give server time to start
-    await asyncio.sleep(2)
+    # Server startup is handled by readiness probe below
 
     # Check if process is still running
     if process.poll() is not None:
@@ -107,6 +106,7 @@ def base_url(test_port: int) -> str:
     return f"http://127.0.0.1:{test_port}"
 
 
+@pytest.mark.e2e
 class TestMCPWorkflow:
     """Test complete MCP workflow from client connection to tool execution."""
     

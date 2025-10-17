@@ -6,7 +6,7 @@ Tests plugin discovery, tool execution, and server components.
 import json
 import pytest
 import subprocess
-from unittest.mock import Mock, patch, AsyncMock
+from unittest.mock import Mock, patch, AsyncMock, MagicMock
 from pathlib import Path
 import sys
 import os
@@ -29,6 +29,7 @@ register_plugin_tools = smcp_module.register_plugin_tools
 plugin_registry = smcp_module.plugin_registry
 
 
+@pytest.mark.unit
 class TestPluginDiscovery:
     """Test plugin discovery functionality."""
     
@@ -101,14 +102,17 @@ class TestPluginDiscovery:
         assert plugins == {}
 
 
+@pytest.mark.unit
 class TestPluginHelp:
     """Test plugin help functionality."""
     
-    @patch.object(smcp_module, "subprocess")
+    @patch("subprocess.run")
     def test_get_plugin_help_success(self, mock_run):
         """Test successful plugin help retrieval."""
-        mock_run.return_value.returncode = 0
-        mock_run.return_value.stdout = "Available commands:\n  test-command\n  another-command"
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = "Available commands:\n  test-command\n  another-command"
+        mock_run.return_value = mock_result
         
         help_text = get_plugin_help("test_plugin", "/path/to/cli.py")
         
@@ -140,6 +144,7 @@ class TestPluginHelp:
         assert help_text == ""
 
 
+@pytest.mark.unit
 class TestToolExecution:
     """Test tool execution functionality."""
     
@@ -151,36 +156,37 @@ class TestToolExecution:
         ctx.error = AsyncMock()
         return ctx
     
-    @patch.object(smcp_module, "asyncio")
-    async def test_execute_plugin_tool_success(self, mock_subprocess):
+    @patch("asyncio.create_subprocess_exec")
+    async def test_execute_plugin_tool_success(self, mock_create_subprocess):
         """Test successful tool execution."""
         # Mock subprocess
-        mock_process = AsyncMock()
-        mock_process.communicate.return_value = (b"Success output", b"")
+        mock_process = MagicMock()
+        mock_process.communicate = AsyncMock(return_value=(b"Success output", b""))
         mock_process.returncode = 0
-        mock_subprocess.return_value = mock_process
+        mock_create_subprocess.return_value = mock_process
         
         # Mock plugin registry
-        with patch("smcp_module.plugin_registry", {"test_plugin": {"path": "/path/to/cli.py"}}):
+        with patch.object(smcp_module, "plugin_registry", {"test_plugin": {"path": "/path/to/cli.py"}}):
             result = await execute_plugin_tool("test_plugin.test_command", {"arg1": "value1"})
         
         assert result == "Success output"
-        mock_subprocess.assert_called_once()
+        mock_create_subprocess.assert_called_once()
     
-    @patch.object(smcp_module, "asyncio")
-    async def test_execute_plugin_tool_failure(self, mock_subprocess):
+    @patch("asyncio.create_subprocess_exec")
+    async def test_execute_plugin_tool_failure(self, mock_create_subprocess):
         """Test tool execution failure."""
         # Mock subprocess
-        mock_process = AsyncMock()
-        mock_process.communicate.return_value = (b"", b"Error output")
+        mock_process = MagicMock()
+        mock_process.communicate = AsyncMock(return_value=(b"", b"Error output"))
         mock_process.returncode = 1
-        mock_subprocess.return_value = mock_process
+        mock_create_subprocess.return_value = mock_process
         
         # Mock plugin registry
-        with patch("smcp_module.plugin_registry", {"test_plugin": {"path": "/path/to/cli.py"}}):
+        with patch.object(smcp_module, "plugin_registry", {"test_plugin": {"path": "/path/to/cli.py"}}):
             result = await execute_plugin_tool("test_plugin.test_command", {"arg1": "value1"})
         
         assert result == "Error: Error output"
+        mock_create_subprocess.assert_called_once()
     
     async def test_execute_plugin_tool_invalid_name(self):
         """Test tool execution with invalid tool name."""
@@ -200,12 +206,13 @@ class TestToolExecution:
         """Test tool execution with exception."""
         mock_subprocess.side_effect = Exception("Subprocess error")
         
-        with patch("smcp_module.plugin_registry", {"test_plugin": {"path": "/path/to/cli.py"}}):
+        with patch.object(smcp_module, "plugin_registry", {"test_plugin": {"path": "/path/to/cli.py"}}):
             result = await execute_plugin_tool("test_plugin.test_command", {})
         
         assert "Error executing tool" in result
 
 
+@pytest.mark.unit
 class TestToolCreation:
     """Test tool creation functionality."""
     
@@ -234,6 +241,7 @@ class TestToolCreation:
         assert tool.inputSchema["type"] == "object"
 
 
+@pytest.mark.unit
 class TestToolRegistration:
     """Test tool registration functionality."""
     
