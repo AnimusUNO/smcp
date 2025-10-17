@@ -58,7 +58,7 @@ SMCP can also function as a standalone repository for development, testing, or c
 
 4. **Run the server**
    ```bash
-   python smcp/mcp_server.py
+   python smcp.py
    ```
 
 The server will start on `http://localhost:8000` by default with **localhost + Docker container access** for development environments.
@@ -69,22 +69,22 @@ By default, the server binds to all interfaces (0.0.0.0) to allow connections fr
 
 **For localhost-only access** (more restrictive):
 ```bash
-python smcp/mcp_server.py --host 127.0.0.1
+python smcp.py --host 127.0.0.1
 ```
 
 **To allow external connections** (use with caution):
 ```bash
-python smcp/mcp_server.py --allow-external
+python smcp.py --allow-external
 ```
 
 **Custom port**:
 ```bash
-python smcp/mcp_server.py --port 9000
+python smcp.py --port 9000
 ```
 
 **Custom host binding**:
 ```bash
-python smcp/mcp_server.py --host 0.0.0.0 --port 8000
+python smcp.py --host 0.0.0.0 --port 8000
 ```
 
 ## 🔧 Configuration
@@ -118,10 +118,10 @@ export MCP_PORT=9000
 python smcp/mcp_server.py
 
 # Localhost-only (explicit)
-python smcp/mcp_server.py --host 127.0.0.1
+python smcp.py --host 127.0.0.1
 
 # Allow external connections (use with caution)
-python smcp/mcp_server.py --allow-external
+python smcp.py --allow-external
 
 # Custom plugins directory
 export MCP_PLUGINS_DIR=/path/to/custom/plugins
@@ -363,11 +363,11 @@ curl -X POST http://localhost:8000/messages/ \
 
 ### Logging
 
-Logs are written to stdout and, by default, to `mcp.log` with rotation. Configure behavior via environment variables:
+Logs are written to stdout and, by default, to `logs/mcp_server.log` with rotation. Configure behavior via environment variables:
 
 - `MCP_LOG_LEVEL` (default `INFO`)
 - `MCP_LOG_JSON` (set `true` for JSON logs)
-- `MCP_LOG_FILE` (default `mcp.log`)
+- `MCP_LOG_FILE` (default `logs/mcp_server.log`)
 - `MCP_LOG_ROTATION` (`size`, `time`, or `none`)
 - `MCP_DISABLE_FILE_LOG` (set `true` to disable file logging)
 

@@ -569,7 +569,7 @@ def execute_rollback(app_name: str, version: str) -> Dict[str, Any]:
 
 2. **Check server logs**:
    ```bash
-   tail -f mcp.log
+   tail -f logs/mcp_server.log
    ```
 
 3. **Verify tool registration**:
