@@ -29,6 +29,7 @@ register_plugin_tools = smcp_module.register_plugin_tools
 plugin_registry = smcp_module.plugin_registry
 
 
+@pytest.mark.unit
 class TestPluginDiscovery:
     """Test plugin discovery functionality."""
     
@@ -101,6 +102,7 @@ class TestPluginDiscovery:
         assert plugins == {}
 
 
+@pytest.mark.unit
 class TestPluginHelp:
     """Test plugin help functionality."""
     
@@ -140,6 +142,7 @@ class TestPluginHelp:
         assert help_text == ""
 
 
+@pytest.mark.unit
 class TestToolExecution:
     """Test tool execution functionality."""
     
@@ -206,6 +209,7 @@ class TestToolExecution:
         assert "Error executing tool" in result
 
 
+@pytest.mark.unit
 class TestToolCreation:
     """Test tool creation functionality."""
     
@@ -234,6 +238,7 @@ class TestToolCreation:
         assert tool.inputSchema["type"] == "object"
 
 
+@pytest.mark.unit
 class TestToolRegistration:
     """Test tool registration functionality."""
     
