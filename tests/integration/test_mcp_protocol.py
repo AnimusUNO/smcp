@@ -124,6 +124,7 @@ async def client() -> AsyncGenerator[httpx.AsyncClient, None]:
         yield client
 
 
+@pytest.mark.integration
 class TestMCPProtocol:
     """Test MCP protocol implementation with proper SSE handling."""
     
