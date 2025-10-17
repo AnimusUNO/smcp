@@ -327,7 +327,7 @@ Examples:
     return parser.parse_args()
 
 
-async def main():
+async def async_main():
     """Main entry point."""
     args = parse_arguments()
     
@@ -429,5 +429,10 @@ async def main():
     await server_instance.serve()
 
 
+def main():
+    """Synchronous entry point for console script."""
+    asyncio.run(async_main())
+
+
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(async_main())
