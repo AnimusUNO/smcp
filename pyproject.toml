@@ -92,7 +92,7 @@ asyncio_mode = "auto"
 timeout = 60
 
 [tool.coverage.run]
-source = ["smcp"]
+source = ["smcp.py", "smcp"]
 omit = [
     "*/tests/*",
     "*/test_*",
