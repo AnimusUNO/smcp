@@ -39,10 +39,10 @@ def run_command(cmd, description):
     
     try:
         result = subprocess.run(cmd, check=True, capture_output=False)
-        print(f"\n✅ {description} completed successfully!")
+        print(f"\n[SUCCESS] {description} completed successfully!")
         return True
     except subprocess.CalledProcessError as e:
-        print(f"\n❌ {description} failed with exit code {e.returncode}")
+        print(f"\nX {description} failed with exit code {e.returncode}")
         return False
 
 
@@ -109,10 +109,10 @@ def main():
         )
     
     if success:
-        print("\n🎉 All tests passed!")
+        print("\n[SUCCESS] All tests passed!")
         sys.exit(0)
     else:
-        print("\n💥 Some tests failed!")
+        print("\n[FAILED] Some tests failed!")
         sys.exit(1)
 
 
