@@ -57,7 +57,7 @@ async def server_process(test_port: int):
 
     print(f"Starting E2E server on port {test_port}")
     process = subprocess.Popen(
-        ["python", "smcp/mcp_server.py", "--host", "127.0.0.1", "--port", str(test_port)],
+        ["python", "smcp.py", "--host", "127.0.0.1", "--port", str(test_port)],
         env=env,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -136,7 +136,7 @@ class TestMCPWorkflow:
             }
             
             ping_response = await client.post(
-                f"{base_url}/mcp",
+                f"{base_url}/messages/",
                 json=ping_request,
                 headers=headers,
                 timeout=5.0
@@ -166,7 +166,7 @@ class TestMCPWorkflow:
             }
             
             init_response = await client.post(
-                f"{base_url}/mcp",
+                f"{base_url}/messages/",
                 json=initialize_request,
                 headers=headers,
                 timeout=5.0
@@ -202,7 +202,7 @@ class TestMCPWorkflow:
             }
             
             await client.post(
-                f"{base_url}/mcp",
+                f"{base_url}/messages/",
                 json=initialized_notification,
                 headers=headers,
                 timeout=5.0
@@ -237,7 +237,7 @@ class TestMCPWorkflow:
         # Test malformed JSON - use a different approach to avoid server hanging
         try:
             response = await client.post(
-                f"{base_url}/mcp",
+                f"{base_url}/messages/",
                 content="invalid json",
                 headers={
                     "content-type": "application/json",
@@ -255,7 +255,7 @@ class TestMCPWorkflow:
         # Test invalid method with valid JSON - use try/catch for robustness
         try:
             response = await client.post(
-                f"{base_url}/mcp",
+                f"{base_url}/messages/",
                 json={
                     "jsonrpc": "2.0",
                     "id": 1,
@@ -276,7 +276,7 @@ class TestMCPWorkflow:
         # Test invalid tool call - use try/catch for robustness
         try:
             response = await client.post(
-                f"{base_url}/mcp",
+                f"{base_url}/messages/",
                 json={
                     "jsonrpc": "2.0",
                     "id": 2,
@@ -340,7 +340,7 @@ class TestMCPWorkflow:
         }
         
         response = await client.post(
-            f"{base_url}/mcp",
+            f"{base_url}/messages/",
             json=initialize_request,
             headers=headers,
             timeout=5.0
@@ -356,7 +356,7 @@ class TestMCPWorkflow:
         }
         
         await client.post(
-            f"{base_url}/mcp",
+            f"{base_url}/messages/",
             json=initialized_notification,
             headers=headers,
             timeout=5.0
@@ -365,7 +365,7 @@ class TestMCPWorkflow:
     async def _establish_sse_connection(self, client: httpx.AsyncClient, base_url: str):
         """Helper to establish SSE connection."""
         try:
-            async with client.stream("GET", f"{base_url}/mcp", timeout=5.0) as response:
+            async with client.stream("GET", f"{base_url}/sse", timeout=5.0) as response:
                 assert response.status_code == 200
                 # Just verify connection is established
                 async for line in response.aiter_lines():
