@@ -73,7 +73,10 @@ def main():
     if args.verbose:
         base_cmd.append("-v")
     
-    if not args.no_cov and args.type in ["all", "coverage"]:
+    if args.no_cov:
+        # Disable coverage entirely when --no-cov is specified
+        base_cmd.extend(["--no-cov", "--cov-fail-under=0"])
+    elif args.type in ["all", "coverage"]:
         base_cmd.extend(["--cov=smcp", "--cov-report=term-missing"])
     
     success = True
