@@ -1,0 +1,13 @@
+# Core dependencies - use latest available versions
+letta-client>=0.1.300  # Use recent stable version
+# asyncio is built-in to Python 3.7+, no need to install
+
+# Twitter integration - primary dependency
+tweepy>=4.14.0  # Reliable Twitter API library
+
+# Essential dependencies
+requests>=2.20.0
+aiohttp>=3.6.0
+
+# Optional: Enhanced Twitter API (install if available)
+# twitter-api-v2>=2.0.0
