@@ -170,17 +170,22 @@ async def execute_plugin_tool(tool_name: str, arguments: dict) -> str:
             if isinstance(value, bool):
                 if value:
                     cmd_args.append(f"--{key}")
+            elif isinstance(value, dict):
+                # Convert dict to JSON string for complex objects
+                import json
+                cmd_args.extend([f"--{key}", json.dumps(value)])
             else:
                 cmd_args.extend([f"--{key}", str(value)])
         
         logger.info(f"Executing plugin command: {' '.join(cmd_args)}")
         
-        # Execute the command with current environment variables
+        # Execute the command with current environment variables and correct working directory
         process = await asyncio.create_subprocess_exec(
             *cmd_args,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
-            env=os.environ.copy()  # Pass environment variables to subprocess
+            env=os.environ.copy(),  # Pass environment variables to subprocess
+            cwd=os.path.dirname(cli_path)  # Set working directory to plugin directory
         )
         
         stdout, stderr = await process.communicate()

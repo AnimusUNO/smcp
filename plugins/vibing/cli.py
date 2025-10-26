@@ -147,6 +147,14 @@ def propose_thesis(args: Dict[str, Any]) -> Dict[str, Any]:
     symbol = args.get('symbol')
     research_data = args.get('research_data', {})
     
+    # Handle JSON string input
+    if isinstance(research_data, str):
+        try:
+            import json
+            research_data = json.loads(research_data)
+        except json.JSONDecodeError:
+            return {"error": "Invalid JSON in research_data"}
+    
     if not symbol or not research_data:
         return {"error": "Symbol and research data required"}
         
@@ -173,11 +181,19 @@ def propose_thesis(args: Dict[str, Any]) -> Dict[str, Any]:
             confidence += 10
             reasons.append("Tight bid-ask spread")
             
+        # Determine risk level with proper case
+        if abs(price_change) > 10:
+            risk_level = "HIGH"
+        elif abs(price_change) > 5:
+            risk_level = "MEDIUM"
+        else:
+            risk_level = "LOW"
+            
         thesis = {
             "symbol": symbol,
             "direction": "BUY" if price_change > 0 else "SELL",
             "confidence": confidence,
-            "risk_level": "HIGH" if abs(price_change) > 10 else "MEDIUM",
+            "risk_level": risk_level,
             "reasons": reasons,
             "timestamp": datetime.now().isoformat()
         }
@@ -197,6 +213,14 @@ def open_trade(args: Dict[str, Any]) -> Dict[str, Any]:
     thesis = args.get('thesis', {})
     config = load_config()
     
+    # Handle JSON string input
+    if isinstance(thesis, str):
+        try:
+            import json
+            thesis = json.loads(thesis)
+        except json.JSONDecodeError:
+            return {"error": "Invalid JSON in thesis"}
+    
     if not symbol or not thesis:
         return {"error": "Symbol and thesis required"}
         
@@ -209,15 +233,29 @@ def open_trade(args: Dict[str, Any]) -> Dict[str, Any]:
         
         # Calculate position size based on confidence
         confidence = thesis.get('confidence', 0)
-        base_size = 100  # Base position size in quote currency
+        base_size = 20  # Base position size in quote currency (adjusted for $20 balance)
         position_size = (base_size * confidence) / 100
         
-        order_params = {
-            "symbol": symbol,
-            "side": thesis.get('direction', 'BUY'),
-            "type": "MARKET",
-            "quoteOrderQty": str(position_size)
-        }
+        # Determine order parameters based on side
+        side = thesis.get('direction', 'BUY')
+        if side == 'BUY':
+            # For BUY orders, use quoteOrderQty (USDT amount)
+            order_params = {
+                "symbol": symbol,
+                "side": side,
+                "type": "MARKET",
+                "quoteOrderQty": str(position_size)
+            }
+        else:
+            # For SELL orders, use quantity (BNB amount)
+            # Convert USDT amount to BNB amount (approximate)
+            bnb_quantity = position_size / 600  # Assuming BNB price around $600
+            order_params = {
+                "symbol": symbol,
+                "side": side,
+                "type": "MARKET",
+                "quantity": str(round(bnb_quantity, 6))
+            }
         
         result = client._request('POST', '/api/v1/order', order_params, signed=True)
         
@@ -364,17 +402,17 @@ Examples:
     trade_parser = subparsers.add_parser("open-trade", help="Open a new trade")
     trade_parser.add_argument("--symbol", required=True, help="Trading pair symbol")
     trade_parser.add_argument("--thesis", required=True, help="Thesis data in JSON format")
-    trade_parser.add_argument("--dry-run", type=bool, default=True, help="Dry run mode")
+    trade_parser.add_argument("--dry-run", "--dry_run", type=bool, default=True, help="Dry run mode")
     
     # Monitor trade command
     monitor_parser = subparsers.add_parser("monitor-trade", help="Monitor a trade")
     monitor_parser.add_argument("--symbol", required=True, help="Trading pair symbol")
     monitor_parser.add_argument("--order-id", required=True, help="Order ID to monitor")
-    monitor_parser.add_argument("--dry-run", type=bool, default=True, help="Dry run mode")
+    monitor_parser.add_argument("--dry-run", "--dry_run", type=bool, default=True, help="Dry run mode")
     
     # Stop all command
     stop_parser = subparsers.add_parser("stop-all", help="Stop all trades")
-    stop_parser.add_argument("--dry-run", type=bool, default=True, help="Dry run mode")
+    stop_parser.add_argument("--dry-run", "--dry_run", type=bool, default=True, help="Dry run mode")
     
     args = parser.parse_args()
     
