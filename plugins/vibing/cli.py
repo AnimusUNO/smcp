@@ -396,7 +396,7 @@ Examples:
     # Propose thesis command
     thesis_parser = subparsers.add_parser("propose-thesis", help="Form trading thesis")
     thesis_parser.add_argument("--symbol", required=True, help="Trading pair symbol")
-    thesis_parser.add_argument("--research-data", required=True, help="Research data in JSON format")
+    thesis_parser.add_argument("--research-data", "--research_data", required=True, help="Research data in JSON format")
     
     # Open trade command
     trade_parser = subparsers.add_parser("open-trade", help="Open a new trade")
@@ -407,7 +407,7 @@ Examples:
     # Monitor trade command
     monitor_parser = subparsers.add_parser("monitor-trade", help="Monitor a trade")
     monitor_parser.add_argument("--symbol", required=True, help="Trading pair symbol")
-    monitor_parser.add_argument("--order-id", required=True, help="Order ID to monitor")
+    monitor_parser.add_argument("--order-id", "--order_id", required=True, help="Order ID to monitor")
     monitor_parser.add_argument("--dry-run", "--dry_run", type=bool, default=True, help="Dry run mode")
     
     # Stop all command
