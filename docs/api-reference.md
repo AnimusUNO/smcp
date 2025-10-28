@@ -373,10 +373,10 @@ You can override the plugin directory using the `MCP_PLUGINS_DIR` environment va
 ```bash
 # Use custom plugin directory
 export MCP_PLUGINS_DIR=/opt/animus/plugins
-python smcp.py
+python smcp/mcp_server.py
 
 # Or specify directly
-MCP_PLUGINS_DIR=/opt/animus/plugins python smcp.py
+MCP_PLUGINS_DIR=/opt/animus/plugins python smcp/mcp_server.py
 ```
 
 ### Plugin Execution
@@ -462,7 +462,7 @@ Logs are written in structured format:
 
 ### Log Output
 
-- **File**: `logs/mcp_server.log` in the server directory
+- **File**: `mcp.log` in the server directory
 - **Console**: Standard output during development
 - **Structured**: JSON format for production logging
 
@@ -525,16 +525,16 @@ By default, the server binds to `127.0.0.1` (localhost only) for security. This 
 **Examples**:
 ```bash
 # Default: localhost only (secure)
-python smcp.py
+python smcp/mcp_server.py
 
 # Allow external connections (use with caution)
-python smcp.py --allow-external
+python smcp/mcp_server.py --allow-external
 
 # Custom port with localhost-only
-python smcp.py --port 9000
+python smcp/mcp_server.py --port 9000
 
 # Custom host and port
-python smcp.py --host 0.0.0.0 --port 8000
+python smcp/mcp_server.py --host 0.0.0.0 --port 8000
 ```
 
 ### Server Configuration

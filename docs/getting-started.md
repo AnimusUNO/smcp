@@ -28,7 +28,7 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 
 # Run the server
-python smcp.py
+python smcp/mcp_server.py
 ```
 
 ## 🔧 First-Time Setup
@@ -44,13 +44,13 @@ SMCP comes with sensible defaults, but you can customize:
 
 ```bash
 # Check available options
-python smcp.py --help
+python smcp/mcp_server.py --help
 
 # Run with custom port
-python smcp.py --port 9000
+python smcp/mcp_server.py --port 9000
 
 # Run with custom host binding
-python smcp.py --host 127.0.0.1
+python smcp/mcp_server.py --host 127.0.0.1
 ```
 
 ## 🌐 Accessing Your Server
@@ -141,14 +141,14 @@ asyncio.run(test_connection())
 ```bash
 # Error: Address already in use
 # Solution: Use a different port
-python smcp.py --port 9000
+python smcp/mcp_server.py --port 9000
 ```
 
 ### Permission Denied
 ```bash
 # Error: Permission denied
 # Solution: Check file permissions and run with appropriate user
-chmod +x smcp.py
+chmod +x smcp/mcp_server.py
 ```
 
 ### Plugin Not Found
@@ -156,14 +156,14 @@ chmod +x smcp.py
 # Error: Plugin directory not found
 # Solution: Set custom plugin directory
 export MCP_PLUGINS_DIR=/path/to/your/plugins
-python smcp.py
+python smcp/mcp_server.py
 ```
 
 ### Network Binding Issues
 ```bash
 # Error: Cannot bind to address
 # Solution: Use localhost-only binding
-python smcp.py --host 127.0.0.1
+python smcp/mcp_server.py --host 127.0.0.1
 ```
 
 ## 📚 Next Steps

@@ -450,7 +450,7 @@ class TestSMCPIntegration:
     def smcp_server(self):
         """Start SMCP server for testing."""
         process = subprocess.Popen([
-            "python", "smcp.py", "--port", "8001"
+            "python", "smcp/mcp_server.py", "--port", "8001"
         ])
         
         # Wait for server to start
