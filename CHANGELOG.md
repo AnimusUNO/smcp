@@ -146,3 +146,24 @@ This release represents a complete rewrite and major upgrade of the Animus Letta
 ---
 
 **Note**: Version 3.0.0 represents a major milestone after weeks of development challenges. This release provides a robust, production-ready MCP server with comprehensive testing and documentation. 
+
+## [3.0.1] - 2025-10-31
+
+### Changed
+- Vibing plugin: removed all dry-run arguments/logic; all operations are real.
+- System prompt: removed autonomous trading references; added manual trading workflow and a CRITICAL rule to always return a final summary after multi-step operations; require concise summaries after each tool call.
+- Tool schemas: split `vibing_check-position` into `vibing_check-balance` (no params) and `vibing_check-position` (requires `symbol`).
+- `vibing_open-trade`: SELL supports explicit `units`/`quantity` (top-level or inside `thesis`).
+- `vibing_propose-thesis`: relaxed nested object schemas with `additionalProperties: true` for `research_data` (`market_data`, `technical_indicators`, `analysis`).
+
+### Fixed
+- Aster API conformance:
+  - Correct HMAC signature generation (stringified, sorted params; add signature after computing).
+  - Signed POSTs use `application/x-www-form-urlencoded` body; signed GETs use canonical query strings.
+  - Consistent `recvWindow` handling as strings where required.
+  - Enforced `MIN_NOTIONAL` $5.00; applied `LOT_SIZE`/`MARKET_LOT_SIZE` rounding on SELL quantities.
+- `vibing_monitor-trade`: query `/api/v1/order` first (any status), fallback to `/api/v1/openOrders` for open orders; removed unnecessary params.
+- Removed `additionalProperties: false` from tool schemas; server ignores client `request_heartbeat` argument.
+
+### Notes
+- Manual workflow: check-balance → research → check-position per candidate → propose-thesis (with position/portfolio) → open-trade → optional tweet → monitor-trade → later check-position for P/L.

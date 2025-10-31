@@ -373,6 +373,35 @@ Logs are written to stdout and, by default, to `logs/mcp_server.log` with rotati
 
 See `docs/api-reference.md` for the full matrix.
 
+## 🪙 Vibing Plugin: Recent Updates (Aster API)
+
+Key operational changes to ensure smooth trading and better agent UX:
+
+- Removed all dry-run flags; all vibing operations are real.
+- Split tools:
+  - `vibing_check-balance` (no params): overall balances + open orders
+  - `vibing_check-position` (symbol required): P/L for a specific pair
+- `vibing_open-trade`:
+  - BUY uses `quoteOrderQty` (USDT)
+  - SELL accepts explicit base `units`/`quantity` (top-level or in `thesis`)
+  - Enforces `MIN_NOTIONAL` = $5.00; applies `LOT_SIZE`/`MARKET_LOT_SIZE`
+  - Aster auth: signatures computed over stringified, sorted params; signed POSTs use `application/x-www-form-urlencoded`; signed GETs use canonical query strings; include `recvWindow`
+- `vibing_monitor-trade`: queries `/api/v1/order` (all statuses), falls back to `/api/v1/openOrders` (open only)
+- Agent behavior (system prompt):
+  - After each tool, provide a concise human summary
+  - After multi-step operations, always provide a final summary
+  - Manual workflow guidance: balance → research → position → thesis → trade → tweet → monitor
+
+See `animus/system_prompt.md` for the exact workflow and behavior requirements.
+
+### Important: Use Vibing from the TUI (not directly via SMCP)
+
+- The Vibing trading workflow should be run from the Animus TUI, which is production-ready and integrates all required capabilities (including Twitter posting via Puppetry).
+- Invoking Vibing tools directly through this SMCP server was used for development/testing only and is not recommended for production:
+  - It may not operate as efficiently or reliably as the TUI flow
+  - It will not have access to the full Twitter plugins and orchestration needed for automated tweet posting
+- Recommendation: Use the TUI’s Vibe mode for day-to-day trading operations. Reserve SMCP-level Vibing calls for development/debugging.
+
 ## 🤝 Contributing
 
 1. Fork the repository

@@ -150,11 +150,11 @@ def get_plugin_help(plugin_name: str, cli_path: str) -> str:
 async def execute_plugin_tool(tool_name: str, arguments: dict) -> str:
     """Execute a plugin tool with the given arguments."""
     try:
-        # Parse tool name to get plugin and command
-        if '.' not in tool_name:
-            return f"Invalid tool name format: {tool_name}. Expected 'plugin.command'"
+        # Parse tool name to get plugin and command (format: plugin_command)
+        if '_' not in tool_name:
+            return f"Invalid tool name format: {tool_name}. Expected 'plugin_command'"
         
-        plugin_name, command = tool_name.split('.', 1)
+        plugin_name, command = tool_name.split('_', 1)
         
         if plugin_name not in plugin_registry:
             return f"Plugin '{plugin_name}' not found"
@@ -165,32 +165,49 @@ async def execute_plugin_tool(tool_name: str, arguments: dict) -> str:
         # Build command arguments
         cmd_args = [sys.executable, cli_path, command]
         
-        # Add arguments
+        # Add arguments (filter out system-level parameters like request_heartbeat)
         for key, value in arguments.items():
+            # Skip system-level parameters that shouldn't be passed to CLI
+            if key == "request_heartbeat":
+                continue
             if isinstance(value, bool):
                 if value:
                     cmd_args.append(f"--{key}")
+            elif isinstance(value, dict):
+                # Convert dict to JSON string for complex objects
+                import json
+                cmd_args.extend([f"--{key}", json.dumps(value)])
             else:
                 cmd_args.extend([f"--{key}", str(value)])
         
         logger.info(f"Executing plugin command: {' '.join(cmd_args)}")
         
-        # Execute the command
+        # Execute the command with current environment variables and correct working directory
         process = await asyncio.create_subprocess_exec(
             *cmd_args,
             stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE
+            stderr=asyncio.subprocess.PIPE,
+            env=os.environ.copy(),  # Pass environment variables to subprocess
+            cwd=os.path.dirname(cli_path)  # Set working directory to plugin directory
         )
         
         stdout, stderr = await process.communicate()
         
+        stdout_text = stdout.decode().strip()
+        stderr_text = stderr.decode().strip()
+        
+        logger.info(f"Tool stdout: {stdout_text}")
+        if stderr_text:
+            logger.warning(f"Tool stderr: {stderr_text}")
+        
         if process.returncode == 0:
-            result = stdout.decode().strip()
             metrics["tool_calls_success"] += 1
-            return result
+            return stdout_text
         else:
-            error_msg = stderr.decode().strip()
             metrics["tool_calls_error"] += 1
+            error_msg = stderr_text if stderr_text else stdout_text
+            if not error_msg:
+                error_msg = f"Command failed with return code {process.returncode}"
             return f"Error: {error_msg}"
             
     except Exception as e:
@@ -202,23 +219,207 @@ async def execute_plugin_tool(tool_name: str, arguments: dict) -> str:
 
 def create_tool_from_plugin(plugin_name: str, command: str) -> Tool:
     """Create an MCP Tool from a plugin command."""
-    tool_name = f"{plugin_name}.{command}"
+    # Use underscore instead of dot for OpenAI compatibility (must match ^[a-zA-Z0-9_-]+$)
+    tool_name = f"{plugin_name}_{command}"
     
     # Create a description based on the plugin and command
     description = f"Execute {plugin_name} {command} command"
     
-    # Create a valid schema that passes Letta's validation
-    # Use a simple object schema with no properties (empty object)
-    return Tool(
-        name=tool_name,
-        description=description,
-        inputSchema={
-            "type": "object",
+    # Define schemas for known tools with proper parameter definitions
+    # Note: Use underscore format (plugin_command) for OpenAI compatibility
+    tool_schemas = {
+        "vibing_research-coin": {
+            "description": "Research cryptocurrency market data and technical indicators",
+            "properties": {
+                "symbol": {
+                    "type": "string",
+                    "description": "Trading pair symbol (e.g., BTCUSDT)"
+                }
+            },
+            "required": ["symbol"]
+        },
+        "vibing_propose-thesis": {
+            "description": "Propose a trading thesis based on research data",
+            "properties": {
+                "symbol": {
+                    "type": "string",
+                    "description": "Trading pair symbol (e.g., BTCUSDT)"
+                },
+                "research_data": {
+                    "type": "object",
+                    "description": "Research data from previous analysis",
+                    "additionalProperties": True,
+                    "properties": {
+                        "market_data": {
+                            "type": "object",
+                            "additionalProperties": True
+                        },
+                        "technical_indicators": {
+                            "type": "object",
+                            "additionalProperties": True
+                        },
+                        "sentiment": {"type": "string"},
+                        "analysis": {
+                            "type": "object",
+                            "additionalProperties": True
+                        }
+                    }
+                }
+            },
+            "required": ["symbol", "research_data"]
+        },
+        "vibing_open-trade": {
+            "description": "Open a trade based on trading thesis. BUY uses quoteOrderQty (USDT). SELL should provide base units via units/quantity.",
+            "properties": {
+                "symbol": {
+                    "type": "string",
+                    "description": "Trading pair symbol (e.g., BTCUSDT)"
+                },
+                "thesis": {
+                    "type": "object",
+                    "description": "Trading thesis with direction (BUY/SELL), confidence (0-100), reasoning, optional risk_level, and optionally units/quantity for SELL.",
+                    "properties": {
+                        "direction": {
+                            "type": "string",
+                            "enum": ["BUY", "SELL"],
+                            "description": "Trade direction - must be either 'BUY' or 'SELL'"
+                        },
+                        "confidence": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 100,
+                            "description": "Confidence level from 0 to 100 (higher = more confident)"
+                        },
+                        "reasoning": {
+                            "type": "string",
+                            "description": "Explanation for why this trade is being made"
+                        },
+                        "risk_level": {
+                            "type": "string",
+                            "enum": ["LOW", "MEDIUM", "HIGH"],
+                            "description": "Risk level assessment (optional)"
+                        },
+                        "units": {"type": "number", "description": "Optional base units to trade (especially for SELL)."},
+                        "quantity": {"type": "number", "description": "Alias for units."}
+                    },
+                    "required": ["direction", "confidence", "reasoning"]
+                    # Note: additionalProperties not set to False to allow system-level params
+                },
+                "units": {"type": "number", "description": "Optional base units for SELL (top-level)."},
+                "quantity": {"type": "number", "description": "Alias for units (top-level)."}
+            },
+            "required": ["symbol", "thesis"]
+        },
+        "vibing_monitor-trade": {
+            "description": "Monitor an active trade",
+            "properties": {
+                "symbol": {
+                    "type": "string",
+                    "description": "Trading pair symbol (e.g., BTCUSDT)"
+                },
+                "order_id": {
+                    "type": "string",
+                    "description": "Order ID to monitor"
+                }
+            },
+            "required": ["symbol", "order_id"]
+        },
+        "vibing_stop-all": {
+            "description": "Stop all active trades",
             "properties": {},
-            "required": [],
-            "additionalProperties": False
+            "required": []
+        },
+        "vibing_check-balance": {
+            "description": "Check account balances and open orders",
+            "properties": {},
+            "required": []
+        },
+        "vibing_check-position": {
+            "description": "Check position and calculate P/L for a specific trading pair. You MUST provide the symbol parameter (e.g., 'ASTERUSDT' for ASTER/USDT pair). This calculates unrealized profit/loss based on average entry price vs current market price.",
+            "properties": {
+                "symbol": {
+                    "type": "string",
+                    "description": "REQUIRED: Trading pair symbol in format BASQUOTE (e.g., 'ASTERUSDT' for ASTER/USDT, 'BTCUSDT' for Bitcoin/USDT). Common format: COINUSDT where COIN is the base asset."
+                }
+            },
+            "required": ["symbol"]
+            # Note: additionalProperties not set to False to allow system-level params
+        },
+        "vibing_general-research": {
+            "description": "Research all trading pairs to find trending coins",
+            "properties": {},
+            "required": []
+        },
+        "vibing_start-autonomous": {
+            "description": "Start autonomous trading script",
+            "properties": {
+                "max_trades": {
+                    "type": "integer",
+                    "description": "Maximum number of concurrent trades",
+                    "default": 5
+                },
+                "interval_minutes": {
+                    "type": "integer",
+                    "description": "Research interval in minutes",
+                    "default": 15
+                }
+            },
+            "required": []
+        },
+        "vibing_stop-autonomous": {
+            "description": "Stop autonomous trading script",
+            "properties": {},
+            "required": []
+        },
+        "puppetry_post-tweet": {
+            "description": "Post a tweet to Twitter",
+            "properties": {
+                "content": {
+                    "type": "string",
+                    "description": "Content of the tweet to post (max 280 characters)"
+                }
+            },
+            "required": ["content"]
+        },
+        "puppetry_status": {
+            "description": "Check Twitter API status and configuration",
+            "properties": {},
+            "required": []
         }
-    )
+    }
+    
+    # Use predefined schema if available, otherwise use generic schema
+    if tool_name in tool_schemas:
+        schema_def = tool_schemas[tool_name]
+        logger.info(f"Creating tool {tool_name} with defined schema: {schema_def['required']} required params")
+        logger.info(f"Tool {tool_name} schema properties: {list(schema_def['properties'].keys())}")
+        logger.info(f"Tool {tool_name} required fields: {schema_def['required']}")
+        input_schema = {
+            "type": "object",
+            "properties": schema_def["properties"],
+            "required": schema_def["required"]
+            # Note: additionalProperties not set to False to allow system-level params like request_heartbeat
+            # These are filtered out in execute_plugin_tool
+        }
+        logger.info(f"Tool {tool_name} final inputSchema: {json.dumps(input_schema, indent=2)}")
+        return Tool(
+            name=tool_name,
+            description=schema_def["description"],
+            inputSchema=input_schema
+        )
+    else:
+        # Fallback for unknown tools
+        logger.warning(f"Creating tool {tool_name} with generic schema (no predefined schema found)")
+        return Tool(
+            name=tool_name,
+            description=description,
+            inputSchema={
+                "type": "object",
+                "properties": {},
+                "required": [],
+                "additionalProperties": True
+            }
+        )
 
 
 def register_plugin_tools(server: Server):

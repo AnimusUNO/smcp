@@ -1,0 +1,90 @@
+# Puppetry Plugin - Git Ignore Configuration
+# Specific ignores for the Twitter AI agent plugin
+
+# ==============================
+# SECURITY - NEVER COMMIT THESE
+# ==============================
+
+# Environment files with API credentials
+.env
+.env.local
+.env.production
+.env.staging
+.env.development
+
+# Twitter API credentials
+twitter_*.json
+twitter_keys.txt
+
+# ==============================
+# PUPPETRY SPECIFIC DATA
+# ==============================
+
+# Agent configuration files (contain API keys)
+config/agents/*.json
+!config/agents/*.json.example
+!config/agent_config_template.json
+
+# Runtime data
+data/
+cache/
+logs/
+memory/
+
+# Tweet history and analytics
+tweets/
+analytics/
+metrics/
+
+# Agent memory and state
+agent_memory/
+agent_state/
+
+# ==============================
+# PYTHON
+# ==============================
+
+# Byte-compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ==============================
+# DEVELOPMENT
+# ==============================
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# Debug files
+debug_*.py
+test_*.py.local
+
+# ==============================
+# SYSTEM FILES
+# ==============================
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+desktop.ini

@@ -1,0 +1,10 @@
+{
+    "api_key": "",
+    "api_secret": "",
+    "trade_settings": {
+        "base_position_size": 100,
+        "min_confidence": 50,
+        "take_profit_pct": 10,
+        "stop_loss_pct": -5
+    }
+}

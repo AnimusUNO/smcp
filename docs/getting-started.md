@@ -175,6 +175,16 @@ Now that you're up and running:
 3. **Architecture**: Understand the [MCP Reference Architecture](MCP-Reference-Architecture.md)
 4. **Troubleshooting**: Visit the [Troubleshooting Guide](troubleshooting.md)
 
+### Vibing Usage Guidance
+
+For cryptocurrency trading with the Vibing plugin, use the Animus TUI (Vibe mode). Running Vibing via this SMCP server was for development/testing and is not recommended for production. The TUI provides:
+
+- End-to-end orchestration of the trading workflow
+- Integrated Twitter posting via Puppetry
+- Better UX and visibility for long, multi-step flows
+
+Note: Direct SMCP Vibing calls may be less efficient and won’t have full social posting access.
+
 ## 🆘 Need Help?
 
 - **Documentation**: Check the [main documentation index](../README.md#-documentation)
