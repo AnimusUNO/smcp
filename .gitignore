@@ -20,6 +20,8 @@ wheels/
 .installed.cfg
 *.egg
 
+PR_DESCRIPTION.md
+
 # Virtual Environment
 venv/
 ENV/
