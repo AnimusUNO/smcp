@@ -32,6 +32,19 @@ ENV/
 
 # Logs
 *.log
+logs/
+
+# Secrets and env
+.env
+*.env
+plugins/vibing/.env
+
+# Windows metadata
+*.Zone.Identifier
+plugins/vibing/aster-finance-spot-api.md:Zone.Identifier
+
+# Generated PR description
+PR_DESCRIPTION.md
 
 # Testing
 .pytest_cache/
