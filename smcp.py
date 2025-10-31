@@ -165,8 +165,11 @@ async def execute_plugin_tool(tool_name: str, arguments: dict) -> str:
         # Build command arguments
         cmd_args = [sys.executable, cli_path, command]
         
-        # Add arguments
+        # Add arguments (filter out system-level parameters like request_heartbeat)
         for key, value in arguments.items():
+            # Skip system-level parameters that shouldn't be passed to CLI
+            if key == "request_heartbeat":
+                continue
             if isinstance(value, bool):
                 if value:
                     cmd_args.append(f"--{key}")
@@ -245,17 +248,28 @@ def create_tool_from_plugin(plugin_name: str, command: str) -> Tool:
                 "research_data": {
                     "type": "object",
                     "description": "Research data from previous analysis",
+                    "additionalProperties": True,
                     "properties": {
-                        "market_data": {"type": "object"},
-                        "technical_indicators": {"type": "object"},
-                        "sentiment": {"type": "string"}
+                        "market_data": {
+                            "type": "object",
+                            "additionalProperties": True
+                        },
+                        "technical_indicators": {
+                            "type": "object",
+                            "additionalProperties": True
+                        },
+                        "sentiment": {"type": "string"},
+                        "analysis": {
+                            "type": "object",
+                            "additionalProperties": True
+                        }
                     }
                 }
             },
             "required": ["symbol", "research_data"]
         },
         "vibing_open-trade": {
-            "description": "Open a trade based on trading thesis",
+            "description": "Open a trade based on trading thesis. BUY uses quoteOrderQty (USDT). SELL should provide base units via units/quantity.",
             "properties": {
                 "symbol": {
                     "type": "string",
@@ -263,19 +277,36 @@ def create_tool_from_plugin(plugin_name: str, command: str) -> Tool:
                 },
                 "thesis": {
                     "type": "object",
-                    "description": "Trading thesis",
+                    "description": "Trading thesis with direction (BUY/SELL), confidence (0-100), reasoning, optional risk_level, and optionally units/quantity for SELL.",
                     "properties": {
-                        "direction": {"type": "string", "enum": ["BUY", "SELL"]},
-                        "confidence": {"type": "number", "minimum": 0, "maximum": 100},
-                        "reasoning": {"type": "string"},
-                        "risk_level": {"type": "string", "enum": ["LOW", "MEDIUM", "HIGH"]}
-                    }
+                        "direction": {
+                            "type": "string",
+                            "enum": ["BUY", "SELL"],
+                            "description": "Trade direction - must be either 'BUY' or 'SELL'"
+                        },
+                        "confidence": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 100,
+                            "description": "Confidence level from 0 to 100 (higher = more confident)"
+                        },
+                        "reasoning": {
+                            "type": "string",
+                            "description": "Explanation for why this trade is being made"
+                        },
+                        "risk_level": {
+                            "type": "string",
+                            "enum": ["LOW", "MEDIUM", "HIGH"],
+                            "description": "Risk level assessment (optional)"
+                        },
+                        "units": {"type": "number", "description": "Optional base units to trade (especially for SELL)."},
+                        "quantity": {"type": "number", "description": "Alias for units."}
+                    },
+                    "required": ["direction", "confidence", "reasoning"]
+                    # Note: additionalProperties not set to False to allow system-level params
                 },
-                "dry_run": {
-                    "type": "boolean",
-                    "description": "Run in dry-run mode",
-                    "default": True
-                }
+                "units": {"type": "number", "description": "Optional base units for SELL (top-level)."},
+                "quantity": {"type": "number", "description": "Alias for units (top-level)."}
             },
             "required": ["symbol", "thesis"]
         },
@@ -295,13 +326,49 @@ def create_tool_from_plugin(plugin_name: str, command: str) -> Tool:
         },
         "vibing_stop-all": {
             "description": "Stop all active trades",
+            "properties": {},
+            "required": []
+        },
+        "vibing_check-balance": {
+            "description": "Check account balances and open orders",
+            "properties": {},
+            "required": []
+        },
+        "vibing_check-position": {
+            "description": "Check position and calculate P/L for a specific trading pair. You MUST provide the symbol parameter (e.g., 'ASTERUSDT' for ASTER/USDT pair). This calculates unrealized profit/loss based on average entry price vs current market price.",
             "properties": {
-                "dry_run": {
-                    "type": "boolean",
-                    "description": "Run in dry-run mode",
-                    "default": True
+                "symbol": {
+                    "type": "string",
+                    "description": "REQUIRED: Trading pair symbol in format BASQUOTE (e.g., 'ASTERUSDT' for ASTER/USDT, 'BTCUSDT' for Bitcoin/USDT). Common format: COINUSDT where COIN is the base asset."
                 }
             },
+            "required": ["symbol"]
+            # Note: additionalProperties not set to False to allow system-level params
+        },
+        "vibing_general-research": {
+            "description": "Research all trading pairs to find trending coins",
+            "properties": {},
+            "required": []
+        },
+        "vibing_start-autonomous": {
+            "description": "Start autonomous trading script",
+            "properties": {
+                "max_trades": {
+                    "type": "integer",
+                    "description": "Maximum number of concurrent trades",
+                    "default": 5
+                },
+                "interval_minutes": {
+                    "type": "integer",
+                    "description": "Research interval in minutes",
+                    "default": 15
+                }
+            },
+            "required": []
+        },
+        "vibing_stop-autonomous": {
+            "description": "Stop autonomous trading script",
+            "properties": {},
             "required": []
         },
         "puppetry_post-tweet": {
@@ -325,15 +392,20 @@ def create_tool_from_plugin(plugin_name: str, command: str) -> Tool:
     if tool_name in tool_schemas:
         schema_def = tool_schemas[tool_name]
         logger.info(f"Creating tool {tool_name} with defined schema: {schema_def['required']} required params")
+        logger.info(f"Tool {tool_name} schema properties: {list(schema_def['properties'].keys())}")
+        logger.info(f"Tool {tool_name} required fields: {schema_def['required']}")
+        input_schema = {
+            "type": "object",
+            "properties": schema_def["properties"],
+            "required": schema_def["required"]
+            # Note: additionalProperties not set to False to allow system-level params like request_heartbeat
+            # These are filtered out in execute_plugin_tool
+        }
+        logger.info(f"Tool {tool_name} final inputSchema: {json.dumps(input_schema, indent=2)}")
         return Tool(
             name=tool_name,
             description=schema_def["description"],
-            inputSchema={
-                "type": "object",
-                "properties": schema_def["properties"],
-                "required": schema_def["required"],
-                "additionalProperties": False
-            }
+            inputSchema=input_schema
         )
     else:
         # Fallback for unknown tools

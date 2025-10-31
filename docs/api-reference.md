@@ -668,3 +668,35 @@ asyncio.run(sse_connection_example())
 ---
 
 For more information, see the [Plugin Development Guide](plugin-development-guide.md) and [README](../README.md). 
+
+## Vibing Plugin Tool Inputs (Spot Trading)
+
+Summary of current input expectations relevant to the Aster exchange integration:
+
+- `vibing_check-balance`
+  - Input: `{}` (no parameters)
+  - Output: balances with non-zero amounts, open orders list, totals
+
+- `vibing_check-position`
+  - Input: `{ "symbol": "ASTERUSDT" }`
+  - Output: current quantity, average entry, current price, position value, cost basis, unrealized P/L (USDT and %)
+
+- `vibing_open-trade`
+  - Input base:
+    - `symbol` (string)
+    - `thesis` (object): `direction` (BUY|SELL), `confidence` (0-100), `reasoning` (string), optional `risk_level`
+    - For SELL: optional `units`/`quantity` either top-level or under `thesis`
+  - Behavior:
+    - BUY: sends `quoteOrderQty` (USDT)
+    - SELL: sends `quantity` (base units), rounded to `LOT_SIZE`/`MARKET_LOT_SIZE`
+    - Enforces `MIN_NOTIONAL` = $5.00
+    - Signed requests: compute HMAC SHA256 over stringified, sorted params; add signature after computing
+    - Signed POST: `application/x-www-form-urlencoded` body; Signed GET: canonical query string; include `recvWindow`
+
+- `vibing_monitor-trade`
+  - Input: `{ "symbol": "ASTERUSDT", "order_id": "123456" }`
+  - Behavior: query `/api/v1/order` first (any status); fallback to `/api/v1/openOrders` (open only)
+
+Notes:
+- The server ignores a client-provided `request_heartbeat` argument during tool execution and does not require it in schemas.
+- JSON-heavy tool outputs should be summarized by the agent per `animus/system_prompt.md`.
