@@ -3,10 +3,10 @@ nixPkgs = ["python3"]
 
 [phases.install]
 cmds = [
-  "pip install --upgrade pip",
-  "pip install -r requirements.txt"
+  "python3 -m pip install --upgrade pip",
+  "python3 -m pip install -r requirements.txt"
 ]
 
 [start]
-cmd = "python smcp.py --allow-external --host 0.0.0.0"
+cmd = "python3 smcp.py --allow-external --host 0.0.0.0"
 
