@@ -972,7 +972,7 @@ Examples:
     parser.add_argument(
         "--port",
         type=int,
-        default=int(os.getenv("MCP_PORT", "8000")),
+        default=int(os.getenv("PORT") or os.getenv("MCP_PORT", "8000")),
         help="Port to run the server on (default: 8000 or MCP_PORT env var)"
     )
     
@@ -1021,6 +1021,7 @@ async def main():
     from starlette.applications import Starlette
     from starlette.routing import Route, Mount
     from starlette.responses import Response
+    from starlette.middleware.cors import CORSMiddleware
     
     async def sse_endpoint(request):
         """SSE connection endpoint."""
@@ -1065,6 +1066,15 @@ async def main():
         Route("/sse", sse_post_endpoint, methods=["POST"]),
         Mount("/messages/", app=sse_transport.handle_post_message),
     ])
+    
+    # Add CORS middleware to allow browser-based clients (like Letta Desktop)
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],  # Allow all origins for development
+        allow_credentials=True,
+        allow_methods=["*"],  # Allow all methods
+        allow_headers=["*"],  # Allow all headers
+    )
     
     # Start server with proper signal handling
     logger.info("Starting server with SSE transport...")
