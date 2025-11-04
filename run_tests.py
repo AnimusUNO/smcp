@@ -39,10 +39,10 @@ def run_command(cmd, description):
     
     try:
         result = subprocess.run(cmd, check=True, capture_output=False)
-        print(f"\n[SUCCESS] {description} completed successfully!")
+        print(f"\n✅ {description} completed successfully!")
         return True
     except subprocess.CalledProcessError as e:
-        print(f"\nX {description} failed with exit code {e.returncode}")
+        print(f"\n❌ {description} failed with exit code {e.returncode}")
         return False
 
 
@@ -73,10 +73,7 @@ def main():
     if args.verbose:
         base_cmd.append("-v")
     
-    if args.no_cov:
-        # Disable coverage entirely when --no-cov is specified
-        base_cmd.extend(["--no-cov", "--cov-fail-under=0"])
-    elif args.type in ["all", "coverage"]:
+    if not args.no_cov and args.type in ["all", "coverage"]:
         base_cmd.extend(["--cov=smcp", "--cov-report=term-missing"])
     
     success = True
@@ -112,10 +109,10 @@ def main():
         )
     
     if success:
-        print("\n[SUCCESS] All tests passed!")
+        print("\n🎉 All tests passed!")
         sys.exit(0)
     else:
-        print("\n[FAILED] Some tests failed!")
+        print("\n💥 Some tests failed!")
         sys.exit(1)
 
 

@@ -66,7 +66,7 @@ Issues = "https://github.com/AnimusUNO/smcp/issues"
 Changelog = "https://github.com/AnimusUNO/smcp/blob/master/CHANGELOG.md"
 
 [project.scripts]
-smcp-server = "smcp:main"
+smcp-server = "smcp.mcp_server:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
@@ -92,7 +92,7 @@ asyncio_mode = "auto"
 timeout = 60
 
 [tool.coverage.run]
-source = ["smcp.py", "smcp"]
+source = ["smcp"]
 omit = [
     "*/tests/*",
     "*/test_*",

@@ -50,7 +50,7 @@ Environment=PATH=/opt/smcp/.local/bin:/usr/local/bin:/usr/bin:/bin
 Environment=MCP_PORT=8000
 Environment=MCP_HOST=0.0.0.0
 Environment=MCP_PLUGINS_DIR=/opt/smcp/smcp/plugins
-ExecStart=/usr/bin/python smcp.py
+ExecStart=/usr/bin/python smcp/mcp_server.py
 Restart=always
 RestartSec=10
 StandardOutput=journal
@@ -125,7 +125,7 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8000/messages/ || exit 1
 
 # Run SMCP
-CMD ["python", "smcp.py", "--host", "0.0.0.0"]
+CMD ["python", "smcp/mcp_server.py", "--host", "0.0.0.0"]
 ```
 
 ### 2. Build and Run
@@ -316,7 +316,7 @@ Create `/etc/logrotate.d/smcp`:
 watch -n 5 'systemctl status smcp'
 
 # Monitor logs
-tail -f /var/log/smcp/logs/mcp_server.log
+tail -f /var/log/smcp/mcp.log
 
 # Monitor system resources
 htop
