@@ -410,16 +410,16 @@ def create_tool_from_plugin(plugin_name: str, command: str) -> Tool:
     else:
         # Fallback for unknown tools
         logger.warning(f"Creating tool {tool_name} with generic schema (no predefined schema found)")
-        return Tool(
-            name=tool_name,
-            description=description,
-            inputSchema={
-                "type": "object",
-                "properties": {},
-                "required": [],
+    return Tool(
+        name=tool_name,
+        description=description,
+        inputSchema={
+            "type": "object",
+            "properties": {},
+            "required": [],
                 "additionalProperties": True
-            }
-        )
+        }
+    )
 
 
 def register_plugin_tools(server: Server):
@@ -514,8 +514,8 @@ Examples:
     parser.add_argument(
         "--port",
         type=int,
-        default=int(os.getenv("MCP_PORT", "8000")),
-        help="Port to run the server on (default: 8000 or MCP_PORT env var)"
+        default=int(os.getenv("PORT") or os.getenv("MCP_PORT", "8000")),
+        help="Port to run the server on (default: 8000 or PORT/MCP_PORT env var)"
     )
     
     parser.add_argument(
@@ -601,6 +601,16 @@ async def async_main():
         Route("/sse", sse_post_endpoint, methods=["POST"]),
         Mount("/messages/", app=sse_transport.handle_post_message),
     ])
+    
+    # Add CORS middleware to allow browser-based clients (like Letta Desktop)
+    from starlette.middleware.cors import CORSMiddleware
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],  # Allow all origins for development
+        allow_credentials=True,
+        allow_methods=["*"],  # Allow all methods
+        allow_headers=["*"],  # Allow all headers
+    )
     
     # Start server with proper signal handling
     logger.info("Starting server with SSE transport...")

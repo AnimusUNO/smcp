@@ -21,6 +21,7 @@ wheels/
 *.egg
 
 PR_DESCRIPTION.md
+system_prompt.md
 
 # Virtual Environment
 venv/
