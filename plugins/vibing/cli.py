@@ -132,20 +132,29 @@ def round_to_step(value: float, step: float) -> float:
     return round(stepped, precision)
 
 def load_config() -> Dict[str, Any]:
-    """Load API credentials from .env file and settings from config file"""
-    # Load .env file
-    env_file = VIBING_DIR / '.env'
-    if env_file.exists():
-        from dotenv import load_dotenv
-        load_dotenv(env_file)
+    """Load API credentials from environment variables, .env file, or config file"""
+    # Priority 1: Check environment variables directly (for Railway/production)
+    # This allows Railway to set env vars without needing a .env file
+    api_key = os.getenv('API_KEY', '')
+    api_secret = os.getenv('API_SECRET_KEY', '')
     
-    # Get credentials from environment
     config = {
-        'api_key': os.getenv('API_KEY', ''),
-        'api_secret': os.getenv('API_SECRET_KEY', '')
+        'api_key': api_key,
+        'api_secret': api_secret
     }
     
-    # Load additional settings from config file
+    # Priority 2: If credentials not found in env, try loading from .env file (for local development)
+    if not (api_key and api_secret):
+        env_file = VIBING_DIR / '.env'
+        if env_file.exists():
+            from dotenv import load_dotenv
+            load_dotenv(env_file)
+            
+            # Re-check after loading .env
+            config['api_key'] = os.getenv('API_KEY', '')
+            config['api_secret'] = os.getenv('API_SECRET_KEY', '')
+    
+    # Priority 3: Load additional settings from config file
     config_file = VIBING_DIR / 'config' / 'config.json'
     if config_file.exists():
         with open(config_file) as f:

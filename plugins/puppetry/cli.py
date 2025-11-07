@@ -21,21 +21,43 @@ PUPPETRY_DIR = Path(__file__).parent
 
 
 def load_twitter_config():
-    """Load Twitter API credentials from .env or config files."""
-    # Try to load from .env file first
+    """Load Twitter API credentials from environment variables, .env file, or config files."""
+    # Priority 1: Check environment variables directly (for Railway/production)
+    # This allows Railway to set env vars without needing a .env file
+    api_key = os.getenv('TWITTER_API_KEY')
+    api_key_secret = os.getenv('TWITTER_API_KEY_SECRET')
+    access_token = os.getenv('TWITTER_ACCESS_TOKEN')
+    access_token_secret = os.getenv('TWITTER_ACCESS_TOKEN_SECRET')
+    
+    if all([api_key, api_key_secret, access_token, access_token_secret]):
+        return {
+            'api_key': api_key,
+            'api_key_secret': api_key_secret,
+            'access_token': access_token,
+            'access_token_secret': access_token_secret,
+        }
+    
+    # Priority 2: Try to load from .env file (for local development)
     env_file = PUPPETRY_DIR / '.env'
     if env_file.exists():
         from dotenv import load_dotenv
         load_dotenv(env_file)
         
-        return {
-            'api_key': os.getenv('TWITTER_API_KEY'),
-            'api_key_secret': os.getenv('TWITTER_API_KEY_SECRET'), 
-            'access_token': os.getenv('TWITTER_ACCESS_TOKEN'),
-            'access_token_secret': os.getenv('TWITTER_ACCESS_TOKEN_SECRET'),
-        }
+        # Re-check after loading .env
+        api_key = os.getenv('TWITTER_API_KEY')
+        api_key_secret = os.getenv('TWITTER_API_KEY_SECRET')
+        access_token = os.getenv('TWITTER_ACCESS_TOKEN')
+        access_token_secret = os.getenv('TWITTER_ACCESS_TOKEN_SECRET')
+        
+        if all([api_key, api_key_secret, access_token, access_token_secret]):
+            return {
+                'api_key': api_key,
+                'api_key_secret': api_key_secret,
+                'access_token': access_token,
+                'access_token_secret': access_token_secret,
+            }
     
-    # Fallback to looking in config directory
+    # Priority 3: Fallback to looking in config directory
     config_file = PUPPETRY_DIR / 'config' / 'twitter.ini'
     if config_file.exists():
         config = configparser.ConfigParser()
