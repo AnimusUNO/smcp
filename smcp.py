@@ -150,11 +150,11 @@ def get_plugin_help(plugin_name: str, cli_path: str) -> str:
 async def execute_plugin_tool(tool_name: str, arguments: dict) -> str:
     """Execute a plugin tool with the given arguments."""
     try:
-        # Parse tool name to get plugin and command (format: plugin_command)
-        if '_' not in tool_name:
-            return f"Invalid tool name format: {tool_name}. Expected 'plugin_command'"
+        # Parse tool name to get plugin and command (format: plugin.command)
+        if '.' not in tool_name:
+            return f"Invalid tool name format: {tool_name}. Expected 'plugin.command'"
         
-        plugin_name, command = tool_name.split('_', 1)
+        plugin_name, command = tool_name.split('.', 1)
         
         if plugin_name not in plugin_registry:
             return f"Plugin '{plugin_name}' not found"
@@ -219,16 +219,15 @@ async def execute_plugin_tool(tool_name: str, arguments: dict) -> str:
 
 def create_tool_from_plugin(plugin_name: str, command: str) -> Tool:
     """Create an MCP Tool from a plugin command."""
-    # Use underscore instead of dot for OpenAI compatibility (must match ^[a-zA-Z0-9_-]+$)
-    tool_name = f"{plugin_name}_{command}"
+    tool_name = f"{plugin_name}.{command}"
     
     # Create a description based on the plugin and command
     description = f"Execute {plugin_name} {command} command"
     
     # Define schemas for known tools with proper parameter definitions
-    # Note: Use underscore format (plugin_command) for OpenAI compatibility
+    # Note: Use dot format (plugin.command) as per MCP specification
     tool_schemas = {
-        "vibing_research-coin": {
+        "vibing.research-coin": {
             "description": "Research cryptocurrency market data and technical indicators",
             "properties": {
                 "symbol": {
@@ -238,7 +237,7 @@ def create_tool_from_plugin(plugin_name: str, command: str) -> Tool:
             },
             "required": ["symbol"]
         },
-        "vibing_propose-thesis": {
+        "vibing.propose-thesis": {
             "description": "Propose a trading thesis based on research data",
             "properties": {
                 "symbol": {
@@ -268,7 +267,7 @@ def create_tool_from_plugin(plugin_name: str, command: str) -> Tool:
             },
             "required": ["symbol", "research_data"]
         },
-        "vibing_open-trade": {
+        "vibing.open-trade": {
             "description": "Open a trade based on trading thesis. BUY uses quoteOrderQty (USDT). SELL should provide base units via units/quantity.",
             "properties": {
                 "symbol": {
@@ -310,7 +309,7 @@ def create_tool_from_plugin(plugin_name: str, command: str) -> Tool:
             },
             "required": ["symbol", "thesis"]
         },
-        "vibing_monitor-trade": {
+        "vibing.monitor-trade": {
             "description": "Monitor an active trade",
             "properties": {
                 "symbol": {
@@ -324,17 +323,17 @@ def create_tool_from_plugin(plugin_name: str, command: str) -> Tool:
             },
             "required": ["symbol", "order_id"]
         },
-        "vibing_stop-all": {
+        "vibing.stop-all": {
             "description": "Stop all active trades",
             "properties": {},
             "required": []
         },
-        "vibing_check-balance": {
+        "vibing.check-balance": {
             "description": "Check account balances and open orders",
             "properties": {},
             "required": []
         },
-        "vibing_check-position": {
+        "vibing.check-position": {
             "description": "Check position and calculate P/L for a specific trading pair. You MUST provide the symbol parameter (e.g., 'ASTERUSDT' for ASTER/USDT pair). This calculates unrealized profit/loss based on average entry price vs current market price.",
             "properties": {
                 "symbol": {
@@ -345,12 +344,12 @@ def create_tool_from_plugin(plugin_name: str, command: str) -> Tool:
             "required": ["symbol"]
             # Note: additionalProperties not set to False to allow system-level params
         },
-        "vibing_general-research": {
+        "vibing.general-research": {
             "description": "Research all trading pairs to find trending coins",
             "properties": {},
             "required": []
         },
-        "vibing_start-autonomous": {
+        "vibing.start-autonomous": {
             "description": "Start autonomous trading script",
             "properties": {
                 "max_trades": {
@@ -366,12 +365,12 @@ def create_tool_from_plugin(plugin_name: str, command: str) -> Tool:
             },
             "required": []
         },
-        "vibing_stop-autonomous": {
+        "vibing.stop-autonomous": {
             "description": "Stop autonomous trading script",
             "properties": {},
             "required": []
         },
-        "puppetry_post-tweet": {
+        "puppetry.post-tweet": {
             "description": "Post a tweet to Twitter",
             "properties": {
                 "content": {
@@ -381,8 +380,33 @@ def create_tool_from_plugin(plugin_name: str, command: str) -> Tool:
             },
             "required": ["content"]
         },
-        "puppetry_status": {
+        "puppetry.status": {
             "description": "Check Twitter API status and configuration",
+            "properties": {},
+            "required": []
+        },
+        "x402.list-items": {
+            "description": "List all available items from the x402 vending machine",
+            "properties": {},
+            "required": []
+        },
+        "x402.check-item": {
+            "description": "Check details of a specific item from the x402 vending machine",
+            "properties": {
+                "item_id": {
+                    "type": "string",
+                    "description": "Item ID to check (e.g., 'coffee', 'energy-drink')"
+                }
+            },
+            "required": ["item_id"]
+        },
+        "x402.health-check": {
+            "description": "Check x402 server health and status",
+            "properties": {},
+            "required": []
+        },
+        "x402.monitor-purchases": {
+            "description": "Monitor for new purchases on the x402 vending machine. Use this periodically to check for new purchases that may require agent response (e.g., posting tweets about purchases).",
             "properties": {},
             "required": []
         }
@@ -602,15 +626,8 @@ async def async_main():
         Mount("/messages/", app=sse_transport.handle_post_message),
     ])
     
-    # Add CORS middleware to allow browser-based clients (like Letta Desktop)
-    from starlette.middleware.cors import CORSMiddleware
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],  # Allow all origins for development
-        allow_credentials=True,
-        allow_methods=["*"],  # Allow all methods
-        allow_headers=["*"],  # Allow all headers
-    )
+    # Note: CORS should be handled at the infrastructure layer (nginx, Railway, ngrok, etc.)
+    # NOT in the core application code. This keeps the application focused on plugin orchestration.
     
     # Start server with proper signal handling
     logger.info("Starting server with SSE transport...")
